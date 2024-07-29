@@ -50,7 +50,6 @@ async def user_login(user_info_email: str, user_info_password: str):
         user = await UserInfo.get(user_info_email=user_info_email)
     except Exception:
         return {"status": "401", "msg": "Unauthorized"}
-
     # Check if the provided password matches the stored password hash
     if not check_password_hash(user.user_info_password, user_info_password):
         return {"status": "401", "msg": "Unauthorized"}

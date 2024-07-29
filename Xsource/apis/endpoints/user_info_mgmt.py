@@ -8,10 +8,10 @@ user_info_mgmt = APIRouter()
 
 
 @user_info_mgmt.get("/userinfo/{id}", summary="userinfo(用户信息)")
-async def get_user_info(user_info_id: str):
+async def get_user_info(id: str):
     try:
         # Retrieve user information based on the provided user ID
-        user = await UserInfo.get(user_info_id=user_info_id)
+        user = await UserInfo.get(user_info_id=id)
     except Exception:
         return {"status": "404", "msg": "User not found"}
 
