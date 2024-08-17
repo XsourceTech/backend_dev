@@ -17,7 +17,7 @@ COPY . .
 RUN chmod +x main.py
 
 # Define the command to run your application
-CMD [ "python", "main.py" ]
+CMD [ "python", "auth_service/main.py" ]
 
 # Expose port 8080 for the application
 EXPOSE 8080
