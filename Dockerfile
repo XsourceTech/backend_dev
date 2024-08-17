@@ -6,9 +6,9 @@ WORKDIR /usr/src/app
 
 # Install app dependencies 
 #TOBE MODIFIED
-COPY ./requirements.txt .
+COPY auth_service/requirements.txt .
 
-RUN pip install -r requirements.txt
+RUN pip install -r auth_service/requirements.txt
 
 COPY . .
 
