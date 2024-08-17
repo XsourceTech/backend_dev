@@ -11,13 +11,16 @@ COPY auth_service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the entire application into the container
-COPY . .
+COPY auth_service/ ./auth_service/
+
+# Set working directory for running the application
+WORKDIR /usr/src/app/auth_service
 
 # Make sure the script is executable
 RUN chmod +x main.py
 
 # Define the command to run your application
-CMD [ "python", "auth_service/main.py" ]
+CMD [ "python", "main.py" ]
 
 # Expose port 8080 for the application
 EXPOSE 8080
