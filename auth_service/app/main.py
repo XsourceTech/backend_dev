@@ -6,7 +6,7 @@ from database_sharing_service.app.crud import verify_password
 from database_sharing_service.app.database import get_db
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
-from logging_config import logger
+from database_sharing_service.app.logging_config import logger
 
 auth_app = FastAPI(
     title="Auth Service API",
