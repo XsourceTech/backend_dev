@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
 from datetime import datetime, timedelta
 from database_sharing_service.app import schemas, models
@@ -94,5 +93,3 @@ def validate_token(token: str):
     return token_data
 
 
-if __name__ == '__main__':
-    uvicorn.run("main:auth_app", port=8080, reload=True)
