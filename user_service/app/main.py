@@ -20,14 +20,16 @@ user_app = FastAPI(
 
 
 @user_app.post("/signup", response_model=schemas.Message, tags=["Users"], summary="User Registration",
-          description="Register a new user with an email, full name, and password.")
+          description="Register a new user with an email, user name, password, source, and user_identity.")
 def signup():
     """
     Register a new user in the system.
 
     - **email**: The email address of the user.
-    - **full_name**: The full name of the user.
+    - **user_name**: The user_name of the account.
     - **password**: The password for the user account.
+    - **source**: (Optional)The source for the user account.
+    - **user_identity**: (Optional) The user_identity for the user account.
 
     Returns the newly created user object.
     """
