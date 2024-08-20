@@ -1,7 +1,7 @@
 import os
 
 class Settings:
-    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql')
+    DATABASE_URL = os.getenv('DATABASE_URL', default="mysql://root:@localhost:3306/xsource")#'postgresql'
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30

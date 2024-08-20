@@ -1,8 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
-from datetime import datetime, timedelta
-from database_sharing_service.app import schemas, models
+from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.crud import verify_password
+from database_sharing_service.app.crud import verify_password, get_user_by_email,generate_auth_token
 from database_sharing_service.app.database import get_db
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
@@ -35,7 +34,7 @@ def generate_token(request: schemas.TokenRequest, db: Session = Depends(get_db))
     """
 
     # Query the database for a user with the provided email.
-    user = db.query(models.User).filter(models.User.email == request.email).first()
+    user = get_user_by_email(db, request.email)
 
     # Verify the user's email address and password.
     if not user:
@@ -46,13 +45,10 @@ def generate_token(request: schemas.TokenRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
     # Generate token.
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    expire = datetime.utcnow() + access_token_expires
-    to_encode = {"email": request.email, "exp": expire}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    token = generate_auth_token(request.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     logger.info(f"Token generated for email: {request.email}")
-    return schemas.TokenResponse(access_token=encoded_jwt, token_type="bearer")
+    return schemas.TokenResponse(access_token=token, token_type="bearer")
 
 
 @auth_app.post("/validate-token", response_model=schemas.TokenData, tags=["Authentication"],
