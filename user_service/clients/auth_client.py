@@ -1,11 +1,12 @@
 import requests
+from database_sharing_service.app.logging_config import logger
 
 
 class AuthClient:
     def __init__(self, base_url: str):
         self.base_url = base_url
 
-    def generate_token(self, email: str, password: str):
+    def authenticate_user(self, email: str, password: str):
         """
         Call the generate-token endpoint of the Auth Service to generate a JWT token.
 
@@ -15,9 +16,16 @@ class AuthClient:
         Returns the generated JWT token generate by endpoint of the Auth Service.
         """
         url = f"{self.base_url}/generate-token"
-        response = requests.post(url, json={"email": email, "password": password})
-        response.raise_for_status()
-        return response.json().get("access_token")
+        try:
+            response = requests.post(url, json={"email": email, "password": password})
+            response.raise_for_status()
+            return response.json().get("access_token")
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error occurred: {http_err} - Status Code: {http_err.response.status_code}")
+            return None
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Request error occurred: {err}")
+            return None
 
     def validate_token(self, token: str):
         """
@@ -28,6 +36,13 @@ class AuthClient:
         Returns the extracted user information if the token is valid by validate-token endpoint.
         """
         url = f"{self.base_url}/validate-token"
-        response = requests.post(url, json={"token": token})
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(url, params={"token": token})
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error occurred: {http_err} - Status Code: {http_err.response.status_code}")
+            return None
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Request error occurred: {err}")
+            return None
