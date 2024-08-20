@@ -17,7 +17,7 @@ class AuthClient:
         url = f"{self.base_url}/generate-token"
         response = requests.post(url, json={"email": email, "password": password})
         response.raise_for_status()
-        return response.json()
+        return response.json().get("access_token")
 
     def validate_token(self, token: str):
         """
