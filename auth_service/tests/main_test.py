@@ -72,3 +72,13 @@ def test_validate_token_invalid():
     )
     assert response.status_code == 401
     assert response.json() == {"detail": "Could not validate credentials"}
+
+def test_validate_token_expired():
+    mock_token = generate_auth_token(mock_user.email, -1)
+
+    response = client.post(
+        "/validate-token",
+        params={"token": mock_token}
+    )
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Could not validate credentials"}
