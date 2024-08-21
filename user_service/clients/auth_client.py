@@ -1,0 +1,48 @@
+import requests
+from database_sharing_service.app.logging_config import logger
+
+
+class AuthClient:
+    def __init__(self, base_url: str):
+        self.base_url = base_url
+
+    def authenticate_user(self, email: str, password: str):
+        """
+        Call the generate-token endpoint of the Auth Service to generate a JWT token.
+
+        - **email**: The email address for which to generate the token.
+        - **password**: The password for the given email.
+
+        Returns the generated JWT token generate by endpoint of the Auth Service.
+        """
+        url = f"{self.base_url}/generate-token"
+        try:
+            response = requests.post(url, json={"email": email, "password": password})
+            response.raise_for_status()
+            return response.json().get("access_token")
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error occurred: {http_err} - Status Code: {http_err.response.status_code}")
+            return None
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Request error occurred: {err}")
+            return None
+
+    def validate_token(self, token: str):
+        """
+        Call the validate-token endpoint of the Auth Service to validate a JWT token.
+
+        - **token**: The JWT token to validate.
+
+        Returns the extracted user information if the token is valid by validate-token endpoint.
+        """
+        url = f"{self.base_url}/validate-token"
+        try:
+            response = requests.post(url, params={"token": token})
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f"HTTP error occurred: {http_err} - Status Code: {http_err.response.status_code}")
+            return None
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Request error occurred: {err}")
+            return None
