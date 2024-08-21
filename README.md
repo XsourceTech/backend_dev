@@ -1,42 +1,33 @@
-The backend uses a microservice design, which each microservice handles their own functionalities and communicated via APIs, database_sharing_service is used as a shared service
-for managing database related things. We are using a centralized logging and database system.
+# Overview 
+This project consists of multiple microservices including a User Service, Auth Service, and Email Service. Each service is isolated with its own application code, tests, and dependencies. Shared components such as logging and database configurations are placed in a shared directory.
 
-Project Structure
-backend_dev/
-├── auth_service/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py
-│   ├── tests/
-│   │   ├── __init__.py
-│   │   ├── test_main.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-├── email_service/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py
-│   ├── tests/
-│   │   ├── __init__.py
-│   │   ├── test_main.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-├── user_service/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── main.py
-│   ├── tests/
-│   │   ├── __init__.py
-│   │   ├── test_main.py
-│   ├── Dockerfile
-│   ├── requirements.txt
-├── databbase_sharing_service/
-│   ├── __init__.py
-│   ├── logging_config.py
-│   ├── database.py
-│   ├── config.py
-│   └── schemas.py
-├── .gitignore
-├── .env
-├── docker-compose.yml
-└── README.md
+## Directory Descriptions
+
+- **`auth_service/`**: Contains the Auth Service responsible for user authentication and authorization.
+  - **`app/`**: The application code for the Auth Service.
+  - **`tests/`**: Unit and integration tests for the Auth Service.
+  - **`Dockerfile`**: Docker configuration for containerizing the Auth Service.
+  - **`requirements.txt`**: Python dependencies for the Auth Service.
+
+- **`email_service/`**: Contains the Email Service responsible for sending emails.
+  - **`app/`**: The application code for the Email Service.
+  - **`tests/`**: Unit and integration tests for the Email Service.
+  - **`Dockerfile`**: Docker configuration for containerizing the Email Service.
+  - **`requirements.txt`**: Python dependencies for the Email Service.
+
+- **`user_service/`**: Contains the User Service responsible for managing user accounts.
+  - **`app/`**: The application code for the User Service.
+  - **`tests/`**: Unit and integration tests for the User Service.
+  - **`Dockerfile`**: Docker configuration for containerizing the User Service.
+  - **`requirements.txt`**: Python dependencies for the User Service.
+
+- **`database_sharing_service/`**: Contains shared components used by multiple services.
+  - **`logging_config.py`**: Centralized logging configuration for all services.
+  - **`database.py`**: Database connection and configuration code.
+  - **`config.py`**: Centralized configuration handling.
+  - **`schemas.py`**: Shared Pydantic models for validation and data management.
+
+- **`.gitignore`**: Specifies files and directories to be ignored by Git.
+- **`.env`**: Environment variables used across all services.
+- **`docker-compose.yml`**: Docker Compose configuration to manage and run all services together.
+- **`README.md`**: Project documentation.
