@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+/.venv
 # macOS specific file
 .DS_Store
+.pytest_cache

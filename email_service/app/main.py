@@ -6,6 +6,8 @@ from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.logging_config import logger
 
+import uvicorn
+
 email_app = FastAPI(
     title="Email Service API",
     description="API for sending emails such as account activation and password resets.",
@@ -30,7 +32,7 @@ conf = ConnectionConfig(
     USE_CREDENTIALS=True
 )
 
-@email_app.post("/send-activation-email", tags=["Emails"], summary="Send Activation Email",
+@email_app.post("/send-activation-email", response_model=schemas.Message, tags=["Emails"], summary="Send Activation Email",
           description="Send an account activation email with a token.")
 async def send_activation_email(email: EmailStr, token: str, background_tasks: BackgroundTasks):
     """
@@ -53,7 +55,7 @@ async def send_activation_email(email: EmailStr, token: str, background_tasks: B
     fm = FastMail(conf)
     background_tasks.add_task(fm.send_message, message)
     logger.info(f"Activation email queued for sending to: {email}")
-    return {"message": "Activation email sent"}
+    return {"status": "200", "message": "Activation email sent"}
 
 
 @email_app.post("/send-password-reset-email", response_model=schemas.Message, tags=["Emails"], summary="Send Password Reset Email",
@@ -78,4 +80,8 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
     fm = FastMail(conf)
     background_tasks.add_task(fm.send_message, message)
     logger.info(f"Password reset email queued for sending to: {email}")
-    return {"message": "Password reset email sent"}
+    return {"status": "200", "message": "Password reset email sent"}
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:email_app", port=8080, reload=True)
