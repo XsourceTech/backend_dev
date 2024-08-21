@@ -1,3 +1,9 @@
-.idea/
+/.idea
+__pycache__/
+*.py[cod]
+*$py.class
 *.log
-__pycache__
+/.venv
+# macOS specific file
+.DS_Store
+.pytest_cache

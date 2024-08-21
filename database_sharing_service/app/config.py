@@ -6,7 +6,7 @@ class Settings:
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
     SMTP_SERVER = os.getenv('SMTP_SERVER', default='smtp.example.com')
-    SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
+    SMTP_PORT = int(os.getenv('SMTP_PORT', default=587))
     MAIL_USERNAME = os.getenv('MAIL_USERNAME', default='your_email@example.com')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', default='your_password')
     MAIL_FROM = os.getenv('MAIL_FROM', default='your_email@example.com')
