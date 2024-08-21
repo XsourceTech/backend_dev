@@ -1,1 +1,7 @@
 /.idea
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS specific file
+.DS_Store
