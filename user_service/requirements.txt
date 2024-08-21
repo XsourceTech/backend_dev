@@ -5,3 +5,4 @@ pydantic==2.8.2          # Data validation and settings management
 python-dotenv==1.0.0      # For loading environment variables from a .env file
 jinja2==3.1.2             # For templating email content (optional, if needed)
 requests==2.32.3          # For client to send request
+
