@@ -50,9 +50,8 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     new_user = crud.create_user(db, user)
     logger.info(f"User created: {new_user.email}")
-    token = (user.email, user.password)
     logger.info(f"Activation email sent to: {new_user.email}")
-    return new_user
+    return {"status": "200", "message": "User created"}
 
 @user_app.post("/login", response_model=schemas.TokenData, tags=["Authentication"], summary="User Login",
           description="Authenticate a user and return a JWT token.")
