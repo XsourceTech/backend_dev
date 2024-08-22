@@ -6,7 +6,7 @@ load_dotenv(dotenv_path="../../.env")
 
 
 class Settings:
-    DATABASE_URL = "mysql://root:@localhost:3306/xsource"
+    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql')
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
