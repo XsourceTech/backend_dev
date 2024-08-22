@@ -1,16 +1,4 @@
-fastapi==0.112.0          # The web framework for building the API
-fastapi-mail==1.4.1       # Plugin for sending emails using FastAPI
 python-jose==3.3.0        # JWT handling for authentication and authorization
-passlib[bcrypt]==1.7.4    # Password hashing library with bcrypt support
-pydantic==2.8.2           # Data validation and settings management
-pydantic[email]           # Email validation plugin for Pydantic
-sqlalchemy==2.0.0         # ORM for database interaction
-alembic==1.11.1           # Database migrations tool compatible with SQLAlchemy
-psycopg2-binary==2.9.1    # PostgreSQL database adapter
-python-dotenv==1.0.0      # Loading environment variables from a shared .env file
-httpx==0.24.1             # HTTP client for making requests (e.g., to other services)
-pytest==7.4.0             # Testing framework
-pytest-asyncio==0.21.0    # Support for asyncio in pytest
-requests==2.32.3          # HTTP library for making requests (popular and simple to use)
-pytest-mock==3.14.0       # Mocking library for pytest
-uvicorn==0.30.6           # ASGI server for running FastAPI applications
+
+
+
