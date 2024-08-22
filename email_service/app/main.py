@@ -1,10 +1,11 @@
+import uvicorn
 from fastapi import FastAPI, BackgroundTasks
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from pydantic import EmailStr
 
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.logging_config import logger, get_logger
+from database_sharing_service.app.logging_config import get_logger
 
 email_app = FastAPI(
     title="Email Service API",
@@ -47,7 +48,7 @@ async def send_activation_email(email: EmailStr, token: str, background_tasks: B
     """
     logger.info(f"Sending activation email to: {email}")
     # todo: update the activation link when we decided on which URL to use
-    activation_link = f"http://example.com/activate?token={token}"
+    activation_link = f"https://example.com/activate?token={token}"
     message = MessageSchema(
         subject="Activate Your Account",
         recipients=[email],
@@ -73,7 +74,7 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
     Returns a success message if the email is sent.
     """
     logger.info(f"Sending password reset email to: {email}")
-    reset_link = f"http://example.com/reset?token={token}"
+    reset_link = f"https://example.com/reset?token={token}"
     message = MessageSchema(
         subject="Reset Your Password",
         recipients=[email],
@@ -84,3 +85,4 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
     background_tasks.add_task(fm.send_message, message)
     logger.info(f"Password reset email queued for sending to: {email}")
     return {"status": "200", "message": "Password reset email sent"}
+

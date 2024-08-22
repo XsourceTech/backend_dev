@@ -1,6 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch
 from auth_service.app import auth_app
 from database_sharing_service.app import schemas, models
 from passlib.context import CryptContext
@@ -16,9 +15,8 @@ mock_user = models.User(id=0, email="test@example.com", user_name="string",
                         user_identity="string")
 
 
-@patch("auth_service.app.main.get_user_by_email")
-def test_generate_token_success(mock_get_user):
-    mock_get_user.return_value = mock_user
+def test_generate_token_success(mocker):
+    mock_get_user_by_email = mocker.patch("auth_service.app.main.get_user_by_email", return_value=mock_user)
     response = client.post(
         "/generate-token",
         json={"email": mock_user.email, "password": mock_password}
@@ -29,10 +27,11 @@ def test_generate_token_success(mock_get_user):
     assert token_response.access_token is not None
     assert token_response.token_type == "bearer"
 
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
 
-@patch("auth_service.app.main.get_user_by_email")
-def test_generate_token_invalid_email(mock_get_user):
-    mock_get_user.return_value = None
+
+def test_generate_token_invalid_email(mocker):
+    mock_get_user_by_email = mocker.patch("auth_service.app.main.get_user_by_email", return_value=None)
     response = client.post(
         "/generate-token",
         json={"email": "wrong_email", "password": mock_password}
@@ -41,10 +40,11 @@ def test_generate_token_invalid_email(mock_get_user):
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid email or password"}
 
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, "wrong_email")
 
-@patch("auth_service.app.main.get_user_by_email")
-def test_generate_token_invalid_password(mock_get_user):
-    mock_get_user.return_value = mock_user
+
+def test_generate_token_invalid_password(mocker):
+    mock_get_user_by_email = mocker.patch("auth_service.app.main.get_user_by_email", return_value=mock_user)
     response = client.post(
         "/generate-token",
         json={"email": mock_user.email, "password": "123456789"}
@@ -52,6 +52,8 @@ def test_generate_token_invalid_password(mock_get_user):
 
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid email or password"}
+
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
 
 
 def test_validate_token_success():
@@ -72,6 +74,7 @@ def test_validate_token_invalid():
     )
     assert response.status_code == 401
     assert response.json() == {"detail": "Could not validate credentials"}
+
 
 def test_validate_token_expired():
     mock_token = generate_auth_token(mock_user.email, -1)

@@ -1,11 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.crud import verify_password, get_user_by_email,generate_auth_token
+from database_sharing_service.app.crud import verify_password, get_user_by_email, generate_auth_token
 from database_sharing_service.app.database import get_db
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
-from database_sharing_service.app.logging_config import logger, get_logger
+from database_sharing_service.app.logging_config import get_logger
+import uvicorn
 
 auth_app = FastAPI(
     title="Auth Service API",
@@ -19,8 +20,8 @@ auth_app = FastAPI(
     ],
 )
 
-
 logger = get_logger("Auth_Service")
+
 
 @auth_app.post("/generate-token", response_model=schemas.TokenResponse, tags=["Authentication"],
                summary="Generate JWT Token",

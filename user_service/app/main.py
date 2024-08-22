@@ -1,15 +1,17 @@
-
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path
 from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from database_sharing_service.app import schemas, crud
+from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
+from database_sharing_service.app.crud import generate_auth_token, get_user_by_email, create_user, get_user_by_id
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from user_service.clients.auth_client import AuthClient
+from user_service.clients.email_client import EmailClient
+
+import uvicorn
 
 user_app = FastAPI(
     title="User Service API",
@@ -29,8 +31,12 @@ user_app = FastAPI(
 
 logger = get_logger("User_Service")
 
+auth_client = AuthClient()
+email_client = EmailClient()
+
+
 @user_app.post("/signup", response_model=schemas.Message, tags=["Users"], summary="User Registration",
-          description="Register a new user with an email, user name, password, source, and user_identity.")
+               description="Register a new user with an email, user name, password, source, and user_identity.")
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user in the system.
@@ -44,17 +50,23 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     Returns the newly created user object.
     """
     logger.info(f"Attempting to sign up user: {user.email}")
-    db_user = crud.get_user_by_email(db, email=user.email)
+    db_user = get_user_by_email(db, email=user.email)
     if db_user:
         logger.warning(f"Signup failed: Email already registered: {user.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = crud.create_user(db, user)
+
+    token = generate_auth_token(user.email, 10)
+    if not token:
+        raise HTTPException(status_code=500, detail="Failed to generate activation token")
+    email_client.send_activation_email(user.email, token)
+    logger.info(f"Activation email sent to: {user.email}")
+    new_user = create_user(db, user)
     logger.info(f"User created: {new_user.email}")
-    logger.info(f"Activation email sent to: {new_user.email}")
     return {"status": "200", "message": "User created"}
 
-@user_app.post("/login", response_model=schemas.TokenData, tags=["Authentication"], summary="User Login",
-          description="Authenticate a user and return a JWT token.")
+
+@user_app.post("/login", response_model=schemas.TokenResponse, tags=["Authentication"], summary="User Login",
+               description="Authenticate a user and return a JWT token.")
 def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
     """
     Authenticate a user and return a JWT token.
@@ -65,7 +77,7 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
     Returns a JWT token if the credentials are valid.
     """
     logger.info(f"User attempting to log in: {user.email}")
-    token = AuthClient.authenticate_user(user.email, user.password)
+    token = auth_client.authenticate_user(user.email, user.password)
     if not token:
         logger.warning(f"Login failed for user: {user.email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -74,8 +86,8 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
 
 
 @user_app.get("/activate", tags=["Users"], summary="Activate User Account",
-         description="Activate a user account using the token sent to the user's email.")
-async def activate_user(token: str = Query(...), db: AsyncSession = Depends(get_db)):
+              description="Activate a user account using the token sent to the user's email.")
+def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
     """
     Activate a user account using the token sent to the user's email.
 
@@ -85,19 +97,19 @@ async def activate_user(token: str = Query(...), db: AsyncSession = Depends(get_
     """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
+        email: str = payload.get("email")
         if email is None:
             raise HTTPException(status_code=400, detail="Invalid token")
 
-        user = await crud.get_user_by_email(db, email=email)
+        user = get_user_by_email(db, email=email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if user.is_verified:
+        if user.is_active:
             return responses.RedirectResponse(url="/already-verified")  # Redirect if user is already verified
 
-        user.is_verified = True
-        await db.commit()
+        user.is_active = True
+        db.commit()
 
         logger.info(f"User account activated: {email}")
         return RedirectResponse(url="/activation-success")  # Redirect to a success page
@@ -107,9 +119,9 @@ async def activate_user(token: str = Query(...), db: AsyncSession = Depends(get_
 
 
 @user_app.get("/user/{user_id}", response_model=schemas.User, tags=["Users"], summary="Get User by ID",
-         description="Retrieve user details by their unique user ID.")
-async def get_user_by_id(user_id: int = Path(..., description="The ID of the user to retrieve"),
-                         db: Session = Depends(get_db)):
+              description="Retrieve user details by their unique user ID.")
+async def query_user_by_id(user_id: int = Path(..., description="The ID of the user to retrieve"),
+                           db: Session = Depends(get_db)):
     """
     Retrieve user details by their unique user ID.
 
@@ -118,8 +130,10 @@ async def get_user_by_id(user_id: int = Path(..., description="The ID of the use
     Returns the user's profile information if the user is found.
     """
     logger.info(f"Fetching user with ID: {user_id}")
-    user = crud.get_user_by_id(db, user_id=user_id)
+    user = get_user_by_id(db, user_id=user_id)
     if user is None:
         logger.warning(f"User with ID {user_id} not found.")
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+

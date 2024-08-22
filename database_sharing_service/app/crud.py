@@ -14,12 +14,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
+
 def get_user_by_id(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
+
 def create_user(db: Session, user_create):
     hashed_password = pwd_context.hash(user_create.password)
-    db_user = User(email=user_create.email, full_name=user_create.full_name, hashed_password=hashed_password)
+    db_user = User(email=user_create.email, user_name=user_create.user_name, hashed_password=hashed_password,
+                   source=user_create.source, user_identity=user_create.user_identity)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

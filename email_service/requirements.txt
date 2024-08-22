@@ -1,1 +1,2 @@
 fastapi==0.112.0
+pytest-mock==3.14.0
