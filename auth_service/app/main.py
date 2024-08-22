@@ -90,5 +90,3 @@ def validate_token(token: str):
 
     logger.info(f"Token validated successfully for email: {email}")
     return token_data
-
-
