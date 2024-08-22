@@ -39,3 +39,19 @@ def generate_auth_token(email: str, expiration: int) -> str:
     to_encode = {"email": email, "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+
+def generate_reset_token(email: str, expiration: int) -> str:
+    access_token_expires = timedelta(minutes=expiration)
+    expire = datetime.utcnow() + access_token_expires
+    to_encode = {"email": email, "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+
+def generate_verify_token(email: str, expiration: int) -> str:
+    access_token_expires = timedelta(minutes=expiration)
+    expire = datetime.utcnow() + access_token_expires
+    to_encode = {"email": email, "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt

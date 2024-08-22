@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.crud import generate_auth_token, get_user_by_email, create_user, get_user_by_id
+from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from user_service.clients.auth_client import AuthClient
@@ -55,7 +55,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
         logger.warning(f"Signup failed: Email already registered: {user.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    token = generate_auth_token(user.email, 10)
+    token = generate_verify_token(user.email, 10)
     if not token:
         raise HTTPException(status_code=500, detail="Failed to generate activation token")
     email_client.send_activation_email(user.email, token)
@@ -101,7 +101,7 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
         logger.warning(f"Reset password failed: Email does not exist: {email}")
         raise HTTPException(status_code=404, detail="User not found")
 
-    reset_token = generate_auth_token(email, 10)
+    reset_token = generate_reset_token(email, 10)
     if not reset_token:
         logger.warning(f"Reset failed for user: {user.email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
