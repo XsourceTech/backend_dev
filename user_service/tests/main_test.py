@@ -91,6 +91,7 @@ def test_login_invalid_credentials(mocker):
 
 def test_activate_user_success(mocker):
     mock_jwt_decode = mocker.patch("user_service.app.main.jwt.decode", return_value={"email": mock_user.email})
+    mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=mock_user)
     mock_redirect_response = mocker.patch("user_service.app.main.RedirectResponse",
                                           return_value=MagicMock(status_code=307))
     mock_commit = mocker.patch("sqlalchemy.orm.Session.commit")
@@ -100,6 +101,7 @@ def test_activate_user_success(mocker):
     assert response.status_code == 200
 
     mock_jwt_decode.assert_called_once_with(mock_token, mocker.ANY, algorithms=[mocker.ANY])
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, email=mock_user.email)
     mock_commit.assert_called_once()
     mock_redirect_response.assert_called_once_with(url="/activation-success")
 
@@ -110,7 +112,7 @@ def test_activate_user_invalid_token(mocker):
     response = client.get("/activate", params={"token": mock_token})
 
     assert response.status_code == 400
-    assert response.json() == {"detail": "Invalid token"}
+    assert response.json() == {"detail": "Invalid credentials"}
 
     mock_jwt_decode.assert_called_once_with(mock_token, mocker.ANY, algorithms=[mocker.ANY])
 
@@ -132,7 +134,109 @@ def test_activate_user_invalid_jwt(mocker):
     response = client.get("/activate", params={"token": "not_jwt_format"})
 
     assert response.status_code == 400
-    assert response.json() == {"detail": "Invalid token"}
+    assert response.json() == {"detail": "Invalid credentials"}
+
+
+def test_request_password_reset_success(mocker):
+    mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=mock_user)
+    mock_generate_auth_token = mocker.patch("user_service.app.main.generate_auth_token", return_value=mock_token)
+    mock_send_password_reset_email = mocker.patch("user_service.app.main.email_client.send_password_reset_email")
+    response = client.post(
+        "/password-reset-request",
+        data={"email": mock_user.email}
+    )
+    assert response.status_code == 200
+    assert response.json() == {"status": "200", "message": "Email sent"}
+
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
+    mock_generate_auth_token.assert_called_once_with(mock_user.email, 10)
+    mock_send_password_reset_email.assert_called_once_with(mock_user.email, mock_token)
+
+
+def test_password_reset_request_user_not_found(mocker):
+    mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=None)
+
+    response = client.post(
+        "/password-reset-request",
+        data={"email": mock_user.email}
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}
+
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
+
+
+def test_password_reset_request_invalid_token(mocker):
+    mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=mock_user)
+    mock_generate_auth_token = mocker.patch("user_service.app.main.generate_auth_token", return_value=None)
+
+    response = client.post(
+        "/password-reset-request",
+        data={"email": mock_user.email}
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Invalid credentials"}
+
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
+    mock_generate_auth_token.assert_called_once_with(mock_user.email, 10)
+
+
+def test_password_reset_success(mocker):
+    mock_jwt_decode = mocker.patch("user_service.app.main.jwt.decode", return_value={"email": mock_user.email})
+    mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=mock_user)
+    mock_commit = mocker.patch("sqlalchemy.orm.Session.commit")
+    mock_redirect_response = mocker.patch("user_service.app.main.RedirectResponse", return_value=MagicMock(status_code=307))
+
+    response = client.post(
+        "/password-reset",
+        data={"token": mock_token, "new_password": "new_password123"}
+    )
+
+    assert response.status_code == 200
+    mock_jwt_decode.assert_called_once_with(mock_token, mocker.ANY, algorithms=[mocker.ANY])
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, email=mock_user.email)
+    mock_commit.assert_called_once()
+    mock_redirect_response.assert_called_once_with(url="/password-reset-success")
+
+
+def test_password_reset_invalid_token():
+
+    response = client.post(
+        "/password-reset",
+        data={"token": mock_token[:-3], "new_password": "new_password123"}
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Invalid credentials"}
+
+
+def test_password_reset_user_not_found(mocker):
+    mock_jwt_decode = mocker.patch("user_service.app.main.jwt.decode", return_value={"email": mock_user.email})
+    mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=None)
+
+    response = client.post(
+        "/password-reset",
+        data={"token": mock_token, "new_password": "new_password123"}
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "User not found"}
+
+    mock_jwt_decode.assert_called_once_with(mock_token, mocker.ANY, algorithms=[mocker.ANY])
+    mock_get_user_by_email.assert_called_once_with(mocker.ANY, email=mock_user.email)
+
+
+def test_password_reset_invalid_jwt():
+
+    response = client.post(
+        "/password-reset",
+        data={"token": "invalid_jwt", "new_password": "new_password123"}
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Invalid credentials"}
 
 
 def test_get_user_by_id_success(mocker):

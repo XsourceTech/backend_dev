@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path
+from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
 from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-
+from passlib.context import CryptContext
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import generate_auth_token, get_user_by_email, create_user, get_user_by_id
@@ -33,7 +33,7 @@ logger = get_logger("User_Service")
 
 auth_client = AuthClient()
 email_client = EmailClient()
-
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @user_app.post("/signup", response_model=schemas.Message, tags=["Users"], summary="User Registration",
                description="Register a new user with an email, user name, password, source, and user_identity.")
@@ -85,6 +85,33 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
+@user_app.post("/password-reset-request", tags=["Users"], summary="Request Password Reset",
+               description="Request a password reset link by providing the user's email address.")
+def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)):
+    """
+    Request a password reset link.
+
+    - **email**: The email address of the user who needs to reset their password.
+
+    Sends a password reset link to the provided email if the user exists.
+    """
+    logger.info(f"Attempting to reset password for user: {email}")
+    user = get_user_by_email(db, email)
+    if user is None:
+        logger.warning(f"Reset password failed: Email does not exist: {email}")
+        raise HTTPException(status_code=404, detail="User not found")
+
+    reset_token = generate_auth_token(email, 10)
+    if not reset_token:
+        logger.warning(f"Reset failed for user: {user.email}")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    email_client.send_password_reset_email(user.email, reset_token)
+    logger.info(f"Activation email sent to: {user.email}")
+
+    return {"status": "200", "message": "Email sent"}
+
+
 @user_app.get("/activate", tags=["Users"], summary="Activate User Account",
               description="Activate a user account using the token sent to the user's email.")
 def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
@@ -99,7 +126,7 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email: str = payload.get("email")
         if email is None:
-            raise HTTPException(status_code=400, detail="Invalid token")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
 
         user = get_user_by_email(db, email=email)
         if user is None:
@@ -115,7 +142,37 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
         return RedirectResponse(url="/activation-success")  # Redirect to a success page
 
     except JWTError:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
+
+@user_app.post("/password-reset", tags=["Users"], summary="Reset User Password",
+             description="Reset the user's password using a valid reset token.")
+def reset_password(token: str = Form(...), new_password: str = Form(...), db: Session = Depends(get_db)):
+    """
+    Reset the user's password using the reset token.
+
+    - **token**: The reset token received by the user.
+    - **new_password**: The new password that the user wants to set.
+
+    Updates the user's password if the token is valid.
+    """
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email: str = payload.get("email")
+        if email is None:
+            raise HTTPException(status_code=400, detail="Invalid credentials")
+        user = get_user_by_email(db, email=email)
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user.hashed_password = pwd_context.hash(new_password)
+        db.commit()
+
+        logger.info(f"User password reset: {email}")
+        return RedirectResponse(url="/password-reset-success")  # Redirect to a success page
+
+    except JWTError:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
 
 
 @user_app.get("/user/{user_id}", response_model=schemas.User, tags=["Users"], summary="Get User by ID",
@@ -137,3 +194,5 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
     return user
 
 
+if __name__ == "__main__":
+    uvicorn.run("main:user_app", port=8080, reload=True)

@@ -86,3 +86,6 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
     logger.info(f"Password reset email queued for sending to: {email}")
     return {"status": "200", "message": "Password reset email sent"}
 
+
+if __name__ == "__main__":
+    uvicorn.run("main:email_app", port=2220, reload=True)

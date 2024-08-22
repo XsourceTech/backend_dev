@@ -7,7 +7,7 @@ logger = get_logger("AuthClient")
 
 
 class AuthClient:
-    def __init__(self, base_url: str = settings.EMAIL_SERVICE_URL):
+    def __init__(self, base_url: str = settings.AUTH_SERVICE_URL):
         self.base_url = base_url
 
     def authenticate_user(self, email: str, password: str):
