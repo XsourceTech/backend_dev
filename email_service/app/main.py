@@ -4,7 +4,7 @@ from pydantic import EmailStr
 
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.logging_config import logger
+from database_sharing_service.app.logging_config import logger, get_logger
 
 email_app = FastAPI(
     title="Email Service API",
@@ -17,6 +17,8 @@ email_app = FastAPI(
         },
     ],
 )
+
+logger = get_logger("Email_Service")
 
 # Configuring the email connection using FastAPI-Mail
 conf = ConnectionConfig(

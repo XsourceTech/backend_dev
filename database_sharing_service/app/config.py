@@ -1,5 +1,8 @@
 import os
+from dotenv import load_dotenv
 
+# Load the shared .env file
+load_dotenv(dotenv_path="../../.env")
 class Settings:
     DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql')
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')

@@ -1,8 +1,11 @@
 fastapi==0.112.0          # The web framework for building the API
-uvicorn==0.22.0           # ASGI server to run the FastAPI application
-fastapi-mail==1.4.1      # For sending emails with FastAPI
-pydantic==2.8.2          # Data validation and settings management
-python-dotenv==1.0.0      # For loading environment variables from a .env file
-jinja2==3.1.2             # For templating email content (optional, if needed)
-requests==2.32.3          # For client to send request
-
+python-jose==3.3.0       # JWT handling for authentication and authorization
+passlib[bcrypt]==1.7.4   # Password hashing
+pydantic==2.0.0          # Data validation and settings management
+sqlalchemy==2.0.0        # ORM for database interaction
+alembic==1.11.1          # Database migrations
+psycopg2-binary==2.9.1   # PostgreSQL database adapter
+python-dotenv==1.0.0     # Loading environment variables from a shared .env file
+httpx==0.24.1            # HTTP client for making requests (e.g., to other services)
+pytest==7.4.0            # Testing framework
+pytest-asyncio==0.21.0   # Support for asyncio in pytest
