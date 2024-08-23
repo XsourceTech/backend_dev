@@ -18,7 +18,7 @@ mock_token = generate_auth_token(email=mock_user.email, expiration=10)
 def test_signup(mocker):
     mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=None)
     mock_create_user = mocker.patch("user_service.app.main.create_user", return_value=mock_user)
-    mock_generate_auth_token = mocker.patch("user_service.app.main.generate_auth_token", return_value=mock_token)
+    mock_generate_verify_token = mocker.patch("user_service.app.main.generate_verify_token", return_value=mock_token)
     mock_send_activation_email = mocker.patch("user_service.app.main.email_client.send_activation_email")
     response = client.post(
         "/signup",
@@ -30,7 +30,7 @@ def test_signup(mocker):
 
     mock_get_user_by_email.assert_called_once_with(mocker.ANY, email=mock_user.email)
     mock_create_user.assert_called_once_with(mocker.ANY, mocker.ANY)
-    mock_generate_auth_token.assert_called_once_with(mock_user.email, 10)
+    mock_generate_verify_token.assert_called_once_with(mock_user.email, 10)
     mock_send_activation_email.assert_called_once_with(mock_user.email, mock_token)
 
 
@@ -49,7 +49,7 @@ def test_signup_user_already_exists(mocker):
 
 def test_signup_token_generation_failed(mocker):
     mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=None)
-    mock_generate_auth_token = mocker.patch("user_service.app.main.generate_auth_token", return_value=None)
+    mock_generate_verify_token = mocker.patch("user_service.app.main.generate_verify_token", return_value=None)
     response = client.post(
         "/signup",
         json={"email": mock_user.email, "user_name": mock_user.user_name, "password": mock_user.hashed_password,
@@ -59,7 +59,7 @@ def test_signup_token_generation_failed(mocker):
     assert response.json() == {"detail": "Failed to generate activation token"}
 
     mock_get_user_by_email.assert_called_once_with(mocker.ANY, email=mock_user.email)
-    mock_generate_auth_token.assert_called_once_with(mock_user.email, 10)
+    mock_generate_verify_token.assert_called_once_with(mock_user.email, 10)
 
 
 def test_login_success(mocker):
@@ -139,7 +139,7 @@ def test_activate_user_invalid_jwt(mocker):
 
 def test_request_password_reset_success(mocker):
     mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=mock_user)
-    mock_generate_auth_token = mocker.patch("user_service.app.main.generate_auth_token", return_value=mock_token)
+    mock_generate_reset_token = mocker.patch("user_service.app.main.generate_reset_token", return_value=mock_token)
     mock_send_password_reset_email = mocker.patch("user_service.app.main.email_client.send_password_reset_email")
     response = client.post(
         "/password-reset-request",
@@ -149,7 +149,7 @@ def test_request_password_reset_success(mocker):
     assert response.json() == {"status": "200", "message": "Email sent"}
 
     mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
-    mock_generate_auth_token.assert_called_once_with(mock_user.email, 10)
+    mock_generate_reset_token.assert_called_once_with(mock_user.email, 10)
     mock_send_password_reset_email.assert_called_once_with(mock_user.email, mock_token)
 
 
@@ -169,7 +169,7 @@ def test_password_reset_request_user_not_found(mocker):
 
 def test_password_reset_request_invalid_token(mocker):
     mock_get_user_by_email = mocker.patch("user_service.app.main.get_user_by_email", return_value=mock_user)
-    mock_generate_auth_token = mocker.patch("user_service.app.main.generate_auth_token", return_value=None)
+    mock_generate_reset_token = mocker.patch("user_service.app.main.generate_reset_token", return_value=None)
 
     response = client.post(
         "/password-reset-request",
@@ -180,7 +180,7 @@ def test_password_reset_request_invalid_token(mocker):
     assert response.json() == {"detail": "Invalid credentials"}
 
     mock_get_user_by_email.assert_called_once_with(mocker.ANY, mock_user.email)
-    mock_generate_auth_token.assert_called_once_with(mock_user.email, 10)
+    mock_generate_reset_token.assert_called_once_with(mock_user.email, 10)
 
 
 def test_password_reset_success(mocker):
