@@ -59,6 +59,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up environment
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "ENV=production" >> $GITHUB_ENV
+          else
+            echo "ENV=local" >> $GITHUB_ENV
+          fi
+
       - name: Authenticate to Azure
         run: |
           az login --service-principal -u ${{ secrets.ARM_CLIENT_ID }} -p ${{ secrets.ARM_CLIENT_SECRET }} --tenant ${{ secrets.ARM_TENANT_ID }} --output none

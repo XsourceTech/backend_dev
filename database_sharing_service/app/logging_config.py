@@ -3,8 +3,15 @@ import os
 
 from dotenv import load_dotenv
 
-# Load the shared .env file
-load_dotenv(dotenv_path="../../.env")
+# Load a specific .env.production file based on the environment
+environment = os.getenv('ENV', 'local')  # Default to 'local' if ENV is not set
+
+# Construct the file name
+dotenv_path = f'"../../.env.production.{environment}'
+
+# Load the environment variables from the specified file
+load_dotenv(dotenv_path)
+
 
 class ServiceLoggerAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
