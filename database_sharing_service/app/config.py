@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 environment = os.getenv('ENV', 'local')  # Default to 'local' if ENV is not set
 
 # Construct the file name
-dotenv_path = f'"../../.env.production.{environment}'
+dotenv_path = f'../../.env.{environment}'
 
 # Load the environment variables from the specified file
 load_dotenv(dotenv_path)
@@ -23,7 +23,7 @@ class Settings:
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', default='your_password')
     MAIL_FROM = os.getenv('MAIL_FROM', default='your_email@example.com')
     EMAIL_SERVICE_URL = os.getenv('EMAIL_SERVICE_URL', default='http://localhost:2220/')
-    AUTH_SERVICE_URL = os.getenv('EMAIL_SERVICE_URL', default='http://localhost:1110/')
+    AUTH_SERVICE_URL = os.getenv('AUTH_SERVICE_URL', default='http://localhost:1110/')
 
 
 settings = Settings()

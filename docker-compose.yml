@@ -39,8 +39,8 @@ services:
     container_name: postgres_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: example
-      POSTGRES_DB: mydatabase
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: xsource
     ports:
       - "5432:5432"
     networks:
