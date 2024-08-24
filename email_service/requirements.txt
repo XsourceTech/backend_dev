@@ -1,1 +1,2 @@
-fastapi==0.112.0
+fastapi-mail==1.4.1       # Plugin for sending emails using FastAPI
+

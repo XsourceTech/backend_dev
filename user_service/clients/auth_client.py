@@ -1,9 +1,13 @@
 import requests
-from database_sharing_service.app.logging_config import logger
+
+from database_sharing_service.app.config import settings
+from database_sharing_service.app.logging_config import get_logger
+
+logger = get_logger("AuthClient")
 
 
 class AuthClient:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str = settings.AUTH_SERVICE_URL):
         self.base_url = base_url
 
     def authenticate_user(self, email: str, password: str):

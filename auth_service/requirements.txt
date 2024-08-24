@@ -1,2 +1,1 @@
-fastapi==0.112.0
-python-jose==3.3.0
+python-jose==3.3.0        # JWT handling for authentication and authorization
