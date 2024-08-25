@@ -18,7 +18,7 @@ services:
     build: ./auth_service
     container_name: auth_service
     env_file:
-      - .env.production.${ENV:-local}  # Default to .env.production.local if ENV is not set
+      - .env.${ENV:-local}  # Default to .env.production.local if ENV is not set
     ports:
       - "8002:8002"
     networks:
@@ -28,7 +28,7 @@ services:
     build: ./email_service
     container_name: email_service
     env_file:
-      - .env.production.${ENV:-local}  # Default to .env.production.local if ENV is not set
+      - .env.${ENV:-local}  # Default to .env.production.local if ENV is not set
     ports:
       - "8003:8003"
     networks:
