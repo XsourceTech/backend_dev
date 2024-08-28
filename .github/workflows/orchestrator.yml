@@ -29,26 +29,11 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/user_service:${{ secrets.IMAGE_TAG }}
-          context: ./user_service
-          file: ./user_service/Dockerfile
-
-      - name: Build and Push Auth Service Docker Image to ACR
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/auth_service:${{ secrets.IMAGE_TAG }}
-          context: ./auth_service
-          file: ./auth_service/Dockerfile
-
-      - name: Build and Push Email Service Docker Image to ACR
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/email_service:${{ secrets.IMAGE_TAG }}
-          context: ./email_service
-          file: ./email_service/Dockerfile
-
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/backend_dev:${{ secrets.IMAGE_TAG }}
+          file: Dockerfile
+          build-args: |
+            ENVIRONMENT=${{ secrets.DEPLOY_ENVIRONMENT }}
+            
   deploy-to-azure:
     name: Deploy to Azure Web App
     runs-on: ubuntu-latest
@@ -58,14 +43,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Set up environment
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "ENV=production" >> $GITHUB_ENV
-          else
-            echo "ENV=local" >> $GITHUB_ENV
-          fi
 
       - name: Authenticate to Azure
         run: |
@@ -80,16 +57,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.USER_SERVICE_WEB_APP_NAME }}
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/user_service:${{ secrets.IMAGE_TAG }}
-
-      - name: Deploy Auth Service to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ secrets.AUTH_SERVICE_WEB_APP_NAME }}
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/auth_service:${{ secrets.IMAGE_TAG }}
-
-      - name: Deploy Email Service to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ secrets.EMAIL_SERVICE_WEB_APP_NAME }}
-          images: ${{ secrets.ACR_LOGIN_SERVER }}/email_service:${{ secrets.IMAGE_TAG }}
+          images: ${{ secrets.ACR_LOGIN_SERVER }}/backend_dev:${{ secrets.IMAGE_TAG }}
