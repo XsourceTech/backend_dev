@@ -33,7 +33,7 @@ jobs:
           file: Dockerfile
           build-args: |
             ENVIRONMENT=${{ secrets.DEPLOY_ENVIRONMENT }}
-            
+
   deploy-to-azure:
     name: Deploy to Azure Web App
     runs-on: ubuntu-latest
@@ -56,5 +56,5 @@ jobs:
       - name: Deploy User Service to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.USER_SERVICE_WEB_APP_NAME }}
+          app-name: ${{ secrets.WEB_APP_NAME }}
           images: ${{ secrets.ACR_LOGIN_SERVER }}/backend_dev:${{ secrets.IMAGE_TAG }}
