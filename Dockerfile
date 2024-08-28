@@ -11,6 +11,7 @@ WORKDIR /app
 # Copy the shared_requirements.txt from the project root
 COPY ./shared_requirements.txt /app/
 COPY ./user_service/requirements.txt /app/
+COPY ./auth_service/requirements.txt /app/
 COPY ./email_service/requirements.txt /app/
 
 # Copy the shared_service directory into the container
@@ -27,7 +28,7 @@ COPY . /app
 RUN pip install -r /app/requirements.txt
 
 # Make port 8002 available to the world outside this container
-EXPOSE 8002
+EXPOSE 8001 8002 8003
 
 # Run the application
 CMD ["uvicorn", "user_service.app.main:user_app", "--host", "0.0.0.0", "--port", "8001"]
