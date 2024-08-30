@@ -91,5 +91,6 @@ def validate_token(token: str):
     logger.info(f"Token validated successfully for email: {email}")
     return token_data
 
+
 if __name__ == "__main__":
     uvicorn.run("main:auth_app", port=8002, reload=True)
