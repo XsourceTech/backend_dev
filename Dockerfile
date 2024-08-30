@@ -17,6 +17,7 @@ COPY ./user_service/app /app/user_service/app
 COPY ./auth_service/app /app/auth_service/app
 COPY ./email_service/app /app/email_service/app
 COPY ./database_sharing_service/app /app/database_sharing_service/app
+COPY ./super_start.py /app/
 
 # Copy the requirements.txt files from each service
 COPY ./user_service/requirements.txt /app/user_service/
