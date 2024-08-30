@@ -1,3 +1,10 @@
+import os
+import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+appPath = os.path.dirname(os.path.dirname(curPath))
+sys.path.append(appPath)
+
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
 from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
@@ -34,6 +41,7 @@ logger = get_logger("User_Service")
 auth_client = AuthClient()
 email_client = EmailClient()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 @user_app.post("/signup", response_model=schemas.Message, tags=["Users"], summary="User Registration",
                description="Register a new user with an email, user name, password, source, and user_identity.")
@@ -146,7 +154,7 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
 
 
 @user_app.post("/password-reset", tags=["Users"], summary="Reset User Password",
-             description="Reset the user's password using a valid reset token.")
+               description="Reset the user's password using a valid reset token.")
 def reset_password(token: str = Form(...), new_password: str = Form(...), db: Session = Depends(get_db)):
     """
     Reset the user's password using the reset token.
@@ -195,4 +203,6 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
 
 
 if __name__ == "__main__":
+    current_directory = os.getcwd()
+    print(current_directory)
     uvicorn.run("main:user_app", port=8001, reload=True)

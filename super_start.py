@@ -1,5 +1,10 @@
 import multiprocessing
 import os
+import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+appPath = os.path.dirname(os.path.dirname(curPath))
+sys.path.append(appPath)
 
 
 def start_user_service():

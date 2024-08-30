@@ -1,11 +1,18 @@
+import os
+import sys
+
+curPath = os.path.abspath(os.path.dirname(__file__))
+appPath = os.path.dirname(os.path.dirname(curPath))
+sys.path.append(appPath)
+
 from fastapi import FastAPI, Depends, HTTPException
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import verify_password, get_user_by_email, generate_auth_token
 from database_sharing_service.app.database import get_db
+from database_sharing_service.app.logging_config import get_logger
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
-from database_sharing_service.app.logging_config import get_logger
 import uvicorn
 
 auth_app = FastAPI(
