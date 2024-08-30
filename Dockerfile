@@ -36,4 +36,4 @@ RUN pip install -r /app/shared_requirements.txt
 EXPOSE 8001 8002 8003
 
 # Run the application
-CMD ["python", "./super_start.py"]
+CMD ["python", "super_start.py"]
