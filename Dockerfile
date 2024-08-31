@@ -8,6 +8,7 @@ COPY .env.${ENVIRONMENT} .env
 # Set the working directory in the container
 WORKDIR /app
 
+#
 COPY start_services.sh /app/start_services.sh
 
 # Copy the shared_requirements.txt from the project root
@@ -19,8 +20,8 @@ COPY ./user_service/app /app/user_service/app
 COPY ./auth_service/app /app/auth_service/app
 COPY ./email_service/app /app/email_service/app
 COPY ./database_sharing_service/app /app/database_sharing_service/app
-COPY ./super_start.py /app/
 
+#
 COPY ./user_service/clients /app/user_service/clients
 
 # Copy the requirements.txt files from each service
