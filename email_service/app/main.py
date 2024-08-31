@@ -1,10 +1,3 @@
-import os
-import sys
-
-curPath = os.path.abspath(os.path.dirname(__file__))
-appPath = os.path.dirname(os.path.dirname(curPath))
-sys.path.append(appPath)
-
 import uvicorn
 from fastapi import FastAPI, BackgroundTasks
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig

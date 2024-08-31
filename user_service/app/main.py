@@ -1,10 +1,3 @@
-import os
-import sys
-
-curPath = os.path.abspath(os.path.dirname(__file__))
-appPath = os.path.dirname(os.path.dirname(curPath))
-sys.path.append(appPath)
-
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
 from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
@@ -203,6 +196,4 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
 
 
 if __name__ == "__main__":
-    current_directory = os.getcwd()
-    print(current_directory)
     uvicorn.run("main:user_app", port=8001, reload=True)

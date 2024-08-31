@@ -1,10 +1,3 @@
-import os
-import sys
-
-curPath = os.path.abspath(os.path.dirname(__file__))
-appPath = os.path.dirname(os.path.dirname(curPath))
-sys.path.append(appPath)
-
 from fastapi import FastAPI, Depends, HTTPException
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings

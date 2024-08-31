@@ -13,12 +13,12 @@ load_dotenv(dotenv_path)
 
 
 class Settings:
-    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql://postgresadmin:mW#M,h8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com/psql-i-xtech')
+    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql://postgresadmin:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/psql-i-xtech?sslmode=true')
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
     SMTP_SERVER = os.getenv('SMTP_SERVER', default='smtp.example.com')
-    SMTP_PORT = 587
+    SMTP_PORT = 587gi
     MAIL_USERNAME = os.getenv('MAIL_USERNAME', default='your_email@example.com')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', default='your_password')
     MAIL_FROM = os.getenv('MAIL_FROM', default='your_email@example.com')
