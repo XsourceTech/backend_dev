@@ -36,5 +36,5 @@ RUN pip install -r /app/shared_requirements.txt
 EXPOSE 8001 8002 8003
 
 # Run the application
-CMD ["uvicorn", "email_service.app.main:email_app", "--host", "localhost", "--port", "8003"]
+CMD ["uvicorn", "email_service.app.main:email_app", "--host", "localhost", "--port", "8001"]
 #CMD ["python", "super_start.py"]
