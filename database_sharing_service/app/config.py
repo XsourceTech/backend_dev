@@ -9,7 +9,7 @@ load_dotenv(dotenv_path)
 
 
 class Settings:
-    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql')
+    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql://postgresadmin@psql-i-xtech:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/xsource_db?sslmode=require')
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
