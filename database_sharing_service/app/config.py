@@ -2,14 +2,13 @@ import os
 from dotenv import load_dotenv
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
-environment = os.getenv('ENV', 'local')  # 默认使用 'local' 环境
-dotenv_path = os.path.join(current_directory, f'../../.env.{environment}')
+dotenv_path = os.path.join(current_directory, f'../../.env')
 
 load_dotenv(dotenv_path)
 
 
 class Settings:
-    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql://postgresadmin@psql-i-xtech:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/xsource_db?sslmode=require')
+    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql')#postgresql://postgresadmin@psql-i-xtech:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/xsource_db?sslmode=require
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30

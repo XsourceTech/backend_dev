@@ -3,7 +3,7 @@ FROM python:3.12-slim AS integration
 
 # Copy the environment file into the container based on the provided environment argument
 ARG ENVIRONMENT
-COPY .env.${ENVIRONMENT} .env.${ENVIRONMENT}
+COPY ./.env.${ENVIRONMENT} /app/.env
 
 # Set the working directory in the container
 WORKDIR /app
