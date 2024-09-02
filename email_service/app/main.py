@@ -88,4 +88,4 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:email_app", port=8003, reload=True)
+    uvicorn.run("main:email_app", host="0.0.0.0", port=8003, reload=True)

@@ -93,4 +93,4 @@ def validate_token(token: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:auth_app", port=8002, reload=True)
+    uvicorn.run("main:auth_app", host="0.0.0.0", port=8002, reload=True)

@@ -196,4 +196,4 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:user_app", port=8001, reload=True)
+    uvicorn.run("main:user_app", host="0.0.0.0", port=8001, reload=True)
