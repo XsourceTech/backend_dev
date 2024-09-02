@@ -83,7 +83,7 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
         logger.warning(f"Login failed for user: {user.email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
     logger.info(f"User logged in successfully: {user.email}")
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer"} #TO DISCUSS 加入用户ID或者邮箱 SPRINT2
 
 
 @user_app.post("/password-reset-request", tags=["Users"], summary="Request Password Reset",
