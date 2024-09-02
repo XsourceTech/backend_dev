@@ -1,54 +1,19 @@
 version: '3.8'
 
 services:
-  user_service:
+  app:
     build:
       context: .
-      dockerfile: ./user_service/Dockerfile
-    container_name: user_service
+      dockerfile: ./Dockerfile
+      args:
+        ENVIRONMENT: local
+    container_name: app
     env_file:
       - .env.${ENV:-local}  # Default to .env.production.local if ENV is not set
     ports:
       - "8001:8001"
-    depends_on:
-      - auth_service
-      - email_service
-    networks:
-      - backend
-
-  auth_service:
-    build:
-      context: .
-      dockerfile: ./auth_service/Dockerfile
-    container_name: auth_service
-    env_file:
-      - .env.${ENV:-local}  # Default to .env.production.local if ENV is not set
-    ports:
       - "8002:8002"
-    networks:
-      - backend
-
-  email_service:
-    build:
-      context: .
-      dockerfile: ./email_service/Dockerfile
-    container_name: email_service
-    env_file:
-      - .env.${ENV:-local}  # Default to .env.production.local if ENV is not set
-    ports:
       - "8003:8003"
-    networks:
-      - backend
-
-  db:
-    image: postgres:15
-    container_name: postgres_db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: xsource
-    ports:
-      - "5432:5432"
     networks:
       - backend
 

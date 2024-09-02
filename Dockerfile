@@ -3,16 +3,18 @@ FROM python:3.12-slim AS integration
 
 # Copy the environment file into the container based on the provided environment argument
 ARG ENVIRONMENT
-COPY .env.${ENVIRONMENT} .env
+COPY .env.${ENVIRONMENT} .env.${ENVIRONMENT}
 
 # Set the working directory in the container
 WORKDIR /app
 
-#
-COPY start_services.sh /app/start_services.sh
+
 
 # Copy the shared_requirements.txt from the project root
 COPY ./shared_requirements.txt /app/
+
+#
+COPY ./super_start.py /app/
 
 # Copy only the necessary application code directories into the container
 # Exclude the tests and Dockerfile from being copied
@@ -30,7 +32,6 @@ COPY ./auth_service/requirements.txt /app/auth_service/
 COPY ./email_service/requirements.txt /app/email_service/
 COPY ./database_sharing_service/requirements.txt /app/database_sharing_service/
 
-RUN chmod +x /app/start_services.sh
 # Install dependencies
 RUN pip install --upgrade pip
 RUN pip install -r /app/user_service/requirements.txt
@@ -42,4 +43,4 @@ RUN pip install -r /app/shared_requirements.txt
 EXPOSE 8001 8002 8003
 
 # Run the application
-CMD ["/app/start_services.sh"]
+CMD ["python","./super_start.py"]
