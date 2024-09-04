@@ -115,7 +115,8 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
 
 @user_app.get("/activate", tags=["Users"], summary="Activate User Account",
               description="Activate a user account using the token sent to the user's email.")
-def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
+def activate_user(token: str = Form(...), db: Session = Depends(get_db)):
+    logger.info(f"User account activating for token: {token}")
     """
     Activate a user account using the token sent to the user's email.
 

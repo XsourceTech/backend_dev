@@ -20,6 +20,7 @@ def get_user_by_id(db: Session, user_id: int):
 
 
 def create_user(db: Session, user_create):
+    #uuid
     hashed_password = pwd_context.hash(user_create.password)
     db_user = User(email=user_create.email, user_name=user_create.user_name, hashed_password=hashed_password,
                    source=user_create.source, user_identity=user_create.user_identity)
