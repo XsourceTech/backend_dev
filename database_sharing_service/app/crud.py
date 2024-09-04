@@ -34,10 +34,10 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def generate_auth_token(email: str, expiration: int) -> str:
+def generate_auth_token(user_id: str, email: str, expiration: int) -> str:
     access_token_expires = timedelta(minutes=expiration)
     expire = datetime.utcnow() + access_token_expires
-    to_encode = {"email": email, "exp": expire}
+    to_encode = {"id": user_id, "email": email, "type": "auth", "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -45,14 +45,14 @@ def generate_auth_token(email: str, expiration: int) -> str:
 def generate_reset_token(email: str, expiration: int) -> str:
     access_token_expires = timedelta(minutes=expiration)
     expire = datetime.utcnow() + access_token_expires
-    to_encode = {"email": email, "exp": expire}
+    to_encode = {"email": email, "type": "reset", "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 
-def generate_verify_token(email: str, expiration: int) -> str:
+def generate_active_token(email: str, expiration: int) -> str:
     access_token_expires = timedelta(minutes=expiration)
     expire = datetime.utcnow() + access_token_expires
-    to_encode = {"email": email, "exp": expire}
+    to_encode = {"email": email, "type": "active", "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt

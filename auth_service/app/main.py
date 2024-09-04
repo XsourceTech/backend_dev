@@ -48,7 +48,7 @@ def generate_token(request: schemas.TokenRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
     # Generate token.
-    token = generate_auth_token(request.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = generate_auth_token(user.id, user.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     logger.info(f"Token generated for email: {request.email}")
     return schemas.TokenResponse(access_token=token, token_type="bearer")
@@ -76,6 +76,9 @@ def validate_token(token: str):
     # Decode the JWT token using the secret key and algorithm
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "auth":
+            logger.warning("Token validation failed: Invalid token type for authentication.")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
         email: str = payload.get("email")
         if email is None:
             logger.warning("Token validation failed: missing email in payload.")

@@ -56,7 +56,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
         logger.warning(f"Signup failed: Email already registered: {user.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    token = generate_verify_token(user.email, 10)
+    token = generate_active_token(user.email, 10)
     if not token:
         raise HTTPException(status_code=500, detail="Failed to generate activation token")
     email_client.send_activation_email(user.email, token)
@@ -83,7 +83,7 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
         logger.warning(f"Login failed for user: {user.email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
     logger.info(f"User logged in successfully: {user.email}")
-    return {"access_token": token, "token_type": "bearer"} #TO DISCUSS 加入用户ID或者邮箱 SPRINT2
+    return {"access_token": token, "token_type": "bearer"}
 
 
 @user_app.post("/password-reset-request", tags=["Users"], summary="Request Password Reset",
@@ -115,7 +115,7 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
 
 @user_app.get("/activate", tags=["Users"], summary="Activate User Account",
               description="Activate a user account using the token sent to the user's email.")
-def activate_user(token: str = Form(...), db: Session = Depends(get_db)):
+def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
     logger.info(f"User account activating for token: {token}")
     """
     Activate a user account using the token sent to the user's email.
@@ -126,6 +126,9 @@ def activate_user(token: str = Form(...), db: Session = Depends(get_db)):
     """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "active":
+            logger.warning("Token validation failed: Invalid token type for user activation.")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
         email: str = payload.get("email")
         if email is None:
             raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -143,7 +146,8 @@ def activate_user(token: str = Form(...), db: Session = Depends(get_db)):
         logger.info(f"User account activated: {email}")
         return RedirectResponse(url="/activation-success")  # Redirect to a success page
 
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
 
@@ -160,6 +164,9 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
     """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "reset":
+            logger.warning("Token validation failed: Invalid token type for password reset.")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
         email: str = payload.get("email")
         if email is None:
             raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -173,7 +180,8 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         logger.info(f"User password reset: {email}")
         return RedirectResponse(url="/password-reset-success")  # Redirect to a success page
 
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
 
