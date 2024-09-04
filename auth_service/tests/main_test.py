@@ -4,13 +4,14 @@ from auth_service.app import auth_app
 from database_sharing_service.app import schemas, models
 from passlib.context import CryptContext
 
+from database_sharing_service.app.crud import *
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import generate_auth_token
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 client = TestClient(auth_app)
 mock_password = "123456"
-mock_user = models.User(id=0, email="test@example.com", user_name="string",
+mock_user = models.User(id=1, email="test@example.com", user_name="string",
                         hashed_password=pwd_context.hash(mock_password), is_active=False, source="string",
                         user_identity="string")
 
@@ -57,14 +58,15 @@ def test_generate_token_invalid_password(mocker):
 
 
 def test_validate_token_success():
-    mock_token = generate_auth_token(mock_user.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    mock_token = generate_auth_token(mock_user.id, mock_user.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     response = client.post(
         "/validate-token",
         params={"token": mock_token}
     )
     assert response.status_code == 200
-    assert response.json() == {"email": mock_user.email}
+    assert response.json().get("email") == mock_user.email
+    assert response.json().get("id") is not None
 
 
 def test_validate_token_invalid():
@@ -77,7 +79,7 @@ def test_validate_token_invalid():
 
 
 def test_validate_token_expired():
-    mock_token = generate_auth_token(mock_user.email, -1)
+    mock_token = generate_auth_token(mock_user.email, mock_user.id, -1)
 
     response = client.post(
         "/validate-token",

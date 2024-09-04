@@ -7,8 +7,11 @@ from . import models
 from .config import settings
 from .models import User
 from passlib.context import CryptContext
+from cryptography.fernet import Fernet
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+cipher_suite = Fernet(settings.FERNET_KEY)
 
 
 def get_user_by_email(db: Session, email: str):
@@ -34,7 +37,7 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def generate_auth_token(user_id: str, email: str, expiration: int) -> str:
+def generate_auth_token(user_id: int, email: str, expiration: int) -> str:
     access_token_expires = timedelta(minutes=expiration)
     expire = datetime.utcnow() + access_token_expires
     to_encode = {"id": user_id, "email": email, "type": "auth", "exp": expire}
@@ -56,3 +59,13 @@ def generate_active_token(email: str, expiration: int) -> str:
     to_encode = {"email": email, "type": "active", "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+
+def encrypt_user_id(user_id: int) -> str:
+    encrypted_identity = cipher_suite.encrypt(str(user_id).encode('utf-8'))
+    return encrypted_identity.decode('utf-8')
+
+
+def decrypt_user_id(encrypted_id: str) -> str:
+    decrypted_identity = cipher_suite.decrypt(encrypted_id.encode('utf-8'))
+    return decrypted_identity.decode('utf-8')

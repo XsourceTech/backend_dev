@@ -187,7 +187,7 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
 
 @user_app.get("/user/{user_id}", response_model=schemas.User, tags=["Users"], summary="Get User by ID",
               description="Retrieve user details by their unique user ID.")
-async def query_user_by_id(user_id: int = Path(..., description="The ID of the user to retrieve"),
+async def query_user_by_id(user_id: str = Path(..., description="The ID of the user to retrieve"),
                            db: Session = Depends(get_db)):
     """
     Retrieve user details by their unique user ID.
@@ -196,6 +196,7 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
 
     Returns the user's profile information if the user is found.
     """
+    user_id = decrypt_user_id(user_id)
     logger.info(f"Fetching user with ID: {user_id}")
     user = get_user_by_id(db, user_id=user_id)
     if user is None:

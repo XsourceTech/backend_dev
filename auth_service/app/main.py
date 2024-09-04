@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.crud import verify_password, get_user_by_email, generate_auth_token
+from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from sqlalchemy.orm import Session
@@ -83,7 +83,7 @@ def validate_token(token: str):
         if email is None:
             logger.warning("Token validation failed: missing email in payload.")
             raise credentials_exception
-        token_data = schemas.TokenData(email=email)
+        token_data = schemas.TokenData(email=email, id=encrypt_user_id(payload.get("id")))
     except JWTError as e:
         logger.error(f"Token validation failed: {str(e)}")
         raise credentials_exception

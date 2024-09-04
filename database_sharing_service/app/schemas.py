@@ -16,16 +16,19 @@ class UserCreate(UserBase):
 
 # Schema representing the User model with additional attributes
 class User(UserBase):
-    id: int
     is_active: bool
+    source: str | None = None
+    user_identity: str | None = None
 
     class Config:
         from_attributes = True
+
 
 # Schema for a message
 class Message(BaseModel):
     status: str
     message: str
+
 
 # Schema for JWT token response
 class TokenResponse(BaseModel):
@@ -36,6 +39,7 @@ class TokenResponse(BaseModel):
 # Schema for the data embedded in the JWT token
 class TokenData(BaseModel):
     email: str | None = None
+    id: str | None = None
 
 
 # Schema for token requests, such as login or token generation

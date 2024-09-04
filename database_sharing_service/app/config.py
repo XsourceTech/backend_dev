@@ -8,7 +8,8 @@ load_dotenv(dotenv_path)
 
 
 class Settings:
-    DATABASE_URL = os.getenv('DATABASE_URL', default='postgresql')#postgresql://postgresadmin@psql-i-xtech:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/xsource_db?sslmode=require
+    DATABASE_URL = os.getenv('DATABASE_URL',
+                             default='postgresql')  #postgresql://postgresadmin@psql-i-xtech:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/xsource_db?sslmode=require
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -19,6 +20,7 @@ class Settings:
     MAIL_FROM = os.getenv('MAIL_FROM', default='your_email@example.com')
     EMAIL_SERVICE_URL = os.getenv('EMAIL_SERVICE_URL', default='http://localhost:8003/')
     AUTH_SERVICE_URL = os.getenv('AUTH_SERVICE_URL', default='http://localhost:8002/')
+    FERNET_KEY = os.getenv('FERNET_KEY', default='default_fernet_key')
 
 
 settings = Settings()
