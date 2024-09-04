@@ -48,7 +48,7 @@ async def send_activation_email(email: EmailStr, token: str, background_tasks: B
     """
     logger.info(f"Sending activation email to: {email}")
     # todo: update the activation link when we decided on which URL to use
-    activation_link = f"https://example.com/activate?token={token}"
+    activation_link = f"https://frontend-i-xtech.azurewebsites.net/activate/{token}"
     message = MessageSchema(
         subject="Activate Your Account",
         recipients=[email],
@@ -74,7 +74,7 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
     Returns a success message if the email is sent.
     """
     logger.info(f"Sending password reset email to: {email}")
-    reset_link = f"https://example.com/reset?token={token}"
+    reset_link = f"https://frontend-i-xtech.azurewebsites.net/reset/{token}"
     message = MessageSchema(
         subject="Reset Your Password",
         recipients=[email],
@@ -88,4 +88,4 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:email_app", port=2220, reload=True)
+    uvicorn.run("main:email_app", host="0.0.0.0", port=8003, reload=True)

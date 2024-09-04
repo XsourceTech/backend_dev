@@ -4,5 +4,5 @@ pydantic[email]           # Email validation plugin for Pydantic
 sqlalchemy==2.0.0         # ORM for database interaction
 alembic==1.11.1           # Database migrations tool compatible with SQLAlchemy
 psycopg2==2.9.9           # PostgreSQL database adapter
-python-dotenv==1.0.0      # Loading environment variables from a shared .env file
+python-dotenv==1.0.0      # Loading environment variables from a shared .env.production file
 #psycopg2-binary==2.9.1    # PostgreSQL database adapter

@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
-from database_sharing_service.app.crud import verify_password, get_user_by_email, generate_auth_token
+from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
+from database_sharing_service.app.logging_config import get_logger
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
-from database_sharing_service.app.logging_config import get_logger
 import uvicorn
 
 auth_app = FastAPI(
@@ -48,7 +48,7 @@ def generate_token(request: schemas.TokenRequest, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
     # Generate token.
-    token = generate_auth_token(request.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = generate_auth_token(user.id, user.email, settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     logger.info(f"Token generated for email: {request.email}")
     return schemas.TokenResponse(access_token=token, token_type="bearer")
@@ -76,11 +76,14 @@ def validate_token(token: str):
     # Decode the JWT token using the secret key and algorithm
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "auth":
+            logger.warning("Token validation failed: Invalid token type for authentication.")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
         email: str = payload.get("email")
         if email is None:
             logger.warning("Token validation failed: missing email in payload.")
             raise credentials_exception
-        token_data = schemas.TokenData(email=email)
+        token_data = schemas.TokenData(email=email, id=encrypt_user_id(payload.get("id")))
     except JWTError as e:
         logger.error(f"Token validation failed: {str(e)}")
         raise credentials_exception
@@ -91,5 +94,6 @@ def validate_token(token: str):
     logger.info(f"Token validated successfully for email: {email}")
     return token_data
 
+
 if __name__ == "__main__":
-    uvicorn.run("main:auth_app", port=1110, reload=True)
+    uvicorn.run("main:auth_app", host="0.0.0.0", port=8002, reload=True)

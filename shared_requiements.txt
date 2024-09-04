@@ -1,8 +1,0 @@
-fastapi==0.112.0          # The web framework for building the API
-httpx==0.24.1             # HTTP client for making requests (e.g., to other services)
-pytest==7.4.0             # Testing framework
-pytest-asyncio==0.21.0    # Support for asyncio in pytest
-requests==2.32.3          # HTTP library for making requests (popular and simple to use)
-pytest-mock==3.14.0       # Mocking library for pytest
-python-multipart==0.0.9
-uvicorn==0.30.6           # ASGI server for running FastAPI applications

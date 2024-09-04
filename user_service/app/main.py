@@ -35,6 +35,7 @@ auth_client = AuthClient()
 email_client = EmailClient()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 @user_app.post("/signup", response_model=schemas.Message, tags=["Users"], summary="User Registration",
                description="Register a new user with an email, user name, password, source, and user_identity.")
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -55,7 +56,7 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
         logger.warning(f"Signup failed: Email already registered: {user.email}")
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    token = generate_verify_token(user.email, 10)
+    token = generate_active_token(user.email, 10)
     if not token:
         raise HTTPException(status_code=500, detail="Failed to generate activation token")
     email_client.send_activation_email(user.email, token)
@@ -115,6 +116,7 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
 @user_app.get("/activate", tags=["Users"], summary="Activate User Account",
               description="Activate a user account using the token sent to the user's email.")
 def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
+    logger.info(f"User account activating for token: {token}")
     """
     Activate a user account using the token sent to the user's email.
 
@@ -124,6 +126,9 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
     """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "active":
+            logger.warning("Token validation failed: Invalid token type for user activation.")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
         email: str = payload.get("email")
         if email is None:
             raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -141,12 +146,13 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
         logger.info(f"User account activated: {email}")
         return RedirectResponse(url="/activation-success")  # Redirect to a success page
 
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
 
 @user_app.post("/password-reset", tags=["Users"], summary="Reset User Password",
-             description="Reset the user's password using a valid reset token.")
+               description="Reset the user's password using a valid reset token.")
 def reset_password(token: str = Form(...), new_password: str = Form(...), db: Session = Depends(get_db)):
     """
     Reset the user's password using the reset token.
@@ -158,6 +164,9 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
     """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "reset":
+            logger.warning("Token validation failed: Invalid token type for password reset.")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
         email: str = payload.get("email")
         if email is None:
             raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -171,13 +180,14 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         logger.info(f"User password reset: {email}")
         return RedirectResponse(url="/password-reset-success")  # Redirect to a success page
 
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
 
 @user_app.get("/user/{user_id}", response_model=schemas.User, tags=["Users"], summary="Get User by ID",
               description="Retrieve user details by their unique user ID.")
-async def query_user_by_id(user_id: int = Path(..., description="The ID of the user to retrieve"),
+async def query_user_by_id(user_id: str = Path(..., description="The ID of the user to retrieve"),
                            db: Session = Depends(get_db)):
     """
     Retrieve user details by their unique user ID.
@@ -186,6 +196,7 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
 
     Returns the user's profile information if the user is found.
     """
+    user_id = decrypt_user_id(user_id)
     logger.info(f"Fetching user with ID: {user_id}")
     user = get_user_by_id(db, user_id=user_id)
     if user is None:
@@ -195,4 +206,4 @@ async def query_user_by_id(user_id: int = Path(..., description="The ID of the u
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:user_app", port=8080, reload=True)
+    uvicorn.run("main:user_app", host="0.0.0.0", port=8001, reload=True)

@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        ENVIRONMENT: local
+    container_name: app
+    env_file:
+      - .env.${ENV:-local}  # Default to .env.production.local if ENV is not set
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
