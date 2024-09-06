@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from typing import List
 
 
 # Base schema for user data, used for sharing common attributes
@@ -46,3 +47,47 @@ class TokenData(BaseModel):
 class TokenRequest(BaseModel):
     email: str
     password: str
+
+
+# Schema for ChatMessage
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+# Schema for BotMemory
+class BotMemory(BaseModel):
+    chat_messages: List[ChatMessage]
+
+
+class BotMemoryWithEnd(BaseModel):
+    bot_memory: BotMemory
+    end: bool
+
+
+# Schema for Token
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+# Schema for ArticleCreate
+class ArticleCreate(BaseModel):
+    title: str
+    major: str
+    filed: str
+    topic: str
+    user_id: str
+
+
+# Schema for ArticleInfo
+class ArticleInfo(BaseModel):
+    title: str
+    major: str
+    filed: str
+    topic: str
+
+
+# Schema for Articles
+class Articles(BaseModel):
+    article_infos: List[ArticleInfo]
