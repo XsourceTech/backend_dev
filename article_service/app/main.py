@@ -23,7 +23,6 @@ article_app = FastAPI(
 logger = get_logger("Article_Service")
 
 
-# 获取用户创建的文章
 @article_app.get("/get-article",
                  response_model=schemas.Articles,
                  tags=["Articles"],
