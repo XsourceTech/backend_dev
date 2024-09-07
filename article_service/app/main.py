@@ -28,8 +28,8 @@ logger = get_logger("Article_Service")
                  tags=["Articles"],
                  summary="Get user's created articles",
                  description="Retrieve the list of articles created by the user.")
-def get_article(user_id: str = Query(..., description="The ID of the user whose articles are being requested"),
-                db: Session = Depends(get_db)):
+def get_article_api(user_id: str = Query(..., description="The ID of the user whose articles are being requested"),
+                    db: Session = Depends(get_db)):
     """
     Get a list of articles created by a user.
 
@@ -37,7 +37,19 @@ def get_article(user_id: str = Query(..., description="The ID of the user whose 
 
     Returns a list of articles created by the user.
     """
-    pass
+    articles = get_article_by_user_id(db, user_id)
+
+    if not articles:
+        raise HTTPException(status_code=404, detail="No articles found for this user")
+
+    article_infos = [schemas.ArticleInfo(
+        title=article.article_title,
+        major=article.article_major,
+        field=article.article_field,
+        topic=article.article_topic
+    ) for article in articles]
+
+    return schemas.Articles(article_infos=article_infos)
 
 
 @article_app.delete("/delete-article/{article_id}",
@@ -45,8 +57,8 @@ def get_article(user_id: str = Query(..., description="The ID of the user whose 
                     tags=["Articles"],
                     summary="Delete article",
                     description="Delete an article by its ID.")
-def delete_article(article_id: str = Path(..., description="The ID of the article to delete"),
-                   db: Session = Depends(get_db)):
+def delete_article_api(article_id: str = Path(..., description="The ID of the article to delete"),
+                       db: Session = Depends(get_db)):
     """
     Delete an article by its ID.
 
@@ -54,7 +66,10 @@ def delete_article(article_id: str = Path(..., description="The ID of the articl
 
     Returns a message confirming the deletion.
     """
-    pass
+    delete = delete_article(db, article_id)
+    if not delete:
+        raise HTTPException(status_code=404, detail="Article not found")
+    return {"status": "200", "message": "Article deleted"}
 
 
 @article_app.post("/create-article",
@@ -62,7 +77,7 @@ def delete_article(article_id: str = Path(..., description="The ID of the articl
                   tags=["Articles"],
                   summary="Create article",
                   description="Create a new article with the provided information.")
-def create_article(article: schemas.ArticleCreate, db: Session = Depends(get_db)):
+def create_article_api(article: schemas.ArticleCreate, db: Session = Depends(get_db)):
     """
     Create a new article.
 
@@ -70,7 +85,9 @@ def create_article(article: schemas.ArticleCreate, db: Session = Depends(get_db)
 
     Returns a message confirming the article creation.
     """
-    pass
+    new_article = create_article(db, article)
+    logger.info(f"Article created: {new_article.article_title}")
+    return {"status": "200", "message": "Article created"}
 
 
 if __name__ == "__main__":

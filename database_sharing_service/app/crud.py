@@ -1,11 +1,13 @@
 from datetime import timedelta, datetime
 
+from fastapi import HTTPException
 from jose import jwt
 from sqlalchemy.orm import Session
 
 from . import models
 from .config import settings
-from .models import User
+from .models import User, Article
+from .schemas import *
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
 
@@ -22,8 +24,11 @@ def get_user_by_id(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def create_user(db: Session, user_create):
-    #uuid
+def get_article_by_user_id(db: Session, user_id: int):
+    return db.query(Article).filter(Article.id == user_id).all()
+
+
+def create_user(db: Session, user_create: UserCreate):
     hashed_password = pwd_context.hash(user_create.password)
     db_user = User(email=user_create.email, user_name=user_create.user_name, hashed_password=hashed_password,
                    source=user_create.source, user_identity=user_create.user_identity)
@@ -31,6 +36,29 @@ def create_user(db: Session, user_create):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def create_article(db: Session, article_create: ArticleCreate):
+    db_article = Article(article_title=article_create.title, article_major=article_create.major,
+                         article_field=article_create.field, article_topic=article_create.topic,
+                         id=article_create.user_id)
+    db.add(db_article)
+    db.commit()
+    db.refresh(db_article)
+    return db_article
+
+
+def delete_article(db: Session, article_id: int):
+    db_article = db.query(Article).filter(Article.article_id == article_id).first()
+    if db_article is None:
+        return False
+    try:
+        db.delete(db_article)
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        return False
 
 
 def verify_password(plain_password, hashed_password):

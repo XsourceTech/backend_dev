@@ -25,9 +25,9 @@ def start_email_service():
     os.system("python ./email_service/app/main.py")
 
 
-def start_chatbot_article_service():
+def start_chatbot_service():
     set_pythonpath()
-    os.system("python ./chatbot_article_service/app/main.py")
+    os.system("python ./chatbot_service/app/main.py")
 
 
 def start_article_service():
@@ -47,8 +47,8 @@ if __name__ == "__main__":
     email_service_process = multiprocessing.Process(target=start_email_service)
     processes.append(email_service_process)
 
-    chatbot_article_service_process = multiprocessing.Process(target=start_chatbot_article_service)
-    processes.append(chatbot_article_service_process)
+    chatbot_service_process = multiprocessing.Process(target=start_chatbot_service)
+    processes.append(chatbot_service_process)
 
     article_service_process = multiprocessing.Process(target=start_article_service)
     processes.append(article_service_process)

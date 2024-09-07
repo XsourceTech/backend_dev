@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import List
+from enum import Enum
 
 
 # Base schema for user data, used for sharing common attributes
@@ -75,7 +76,7 @@ class Token(BaseModel):
 class ArticleCreate(BaseModel):
     title: str
     major: str
-    filed: str
+    field: str
     topic: str
     user_id: str
 
@@ -84,10 +85,17 @@ class ArticleCreate(BaseModel):
 class ArticleInfo(BaseModel):
     title: str
     major: str
-    filed: str
+    field: str
     topic: str
 
 
 # Schema for Articles
 class Articles(BaseModel):
     article_infos: List[ArticleInfo]
+
+
+class Level(str, Enum):
+    major = 'major'
+    field = 'field'
+    topic = 'topic'
+    title = 'title'

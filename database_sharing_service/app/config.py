@@ -20,6 +20,8 @@ class Settings:
     MAIL_FROM = os.getenv('MAIL_FROM', default='your_email@example.com')
     EMAIL_SERVICE_URL = os.getenv('EMAIL_SERVICE_URL', default='http://localhost:8003/')
     AUTH_SERVICE_URL = os.getenv('AUTH_SERVICE_URL', default='http://localhost:8002/')
+    ARTICLE_SERVICE_URL = os.getenv('EMAIL_SERVICE_URL', default='http://localhost:8005/')
+    CHATBOT_SERVICE_URL = os.getenv('AUTH_SERVICE_URL', default='http://localhost:8004/')
     FERNET_KEY = os.getenv('FERNET_KEY', default='default_fernet_key')
 
 
