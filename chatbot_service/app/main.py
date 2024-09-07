@@ -106,11 +106,11 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
         logger.warning(f"Get summary failed")
         raise HTTPException(status_code=500, detail="Failed to get summary from the chatbot.")
 
-    #SHOW BE CHANGED AFTER DISCUSSION WITH MODEL
+    #SHOULD BE CHANGED AFTER DISCUSSION WITH MODEL
     article_create = schemas.ArticleCreate(title=summary.title, major=summary.major, field=summary.field,
                                            topic=summary.topic, user_id=user_id)
     article_client.create_article(article_create)
-    # SHOW BE CHANGED AFTER DISCUSSION WITH MODEL
+    #SHOULD BE CHANGED AFTER DISCUSSION WITH MODEL
 
     return {"status": 200, "message": "Article created."}
 

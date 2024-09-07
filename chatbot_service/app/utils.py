@@ -20,4 +20,4 @@ def get_current_level(bot_memory: schemas.BotMemory, part):
                 current_index += 1
                 current_rounds = 0
     return levels[current_index]
-#SHOW BE CHANGED AFTER DISCUSSION WITH MODEL
+#TO BE CHANGED AFTER DISCUSSION WITH MODEL
