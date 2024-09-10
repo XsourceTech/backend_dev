@@ -242,7 +242,7 @@ def test_password_reset_invalid_jwt():
 
 def test_get_user_by_id_success(mocker):
     mock_get_user_by_id = mocker.patch("user_service.app.main.get_user_by_id", return_value=mock_user)
-    mock_encrypt_user_id = encrypt_user_id(mock_user.id)
+    mock_encrypt_user_id = encrypt_id(mock_user.id)
     response = client.get(f"/user/{mock_encrypt_user_id}")
 
     assert response.status_code == 200
@@ -254,15 +254,15 @@ def test_get_user_by_id_success(mocker):
         "is_active": mock_user.is_active
     }
 
-    mock_get_user_by_id.assert_called_once_with(mocker.ANY, user_id=decrypt_user_id(mock_encrypt_user_id))
+    mock_get_user_by_id.assert_called_once_with(mocker.ANY, user_id=decrypt_id(mock_encrypt_user_id))
 
 
 def test_get_user_by_id_user_not_found(mocker):
     mock_get_user_by_id = mocker.patch("user_service.app.main.get_user_by_id", return_value=None)
-    mock_encrypt_user_id = encrypt_user_id(mock_user.id)
+    mock_encrypt_user_id = encrypt_id(mock_user.id)
     response = client.get(f"/user/{mock_encrypt_user_id}")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "User not found"}
 
-    mock_get_user_by_id.assert_called_once_with(mocker.ANY, user_id=decrypt_user_id(mock_encrypt_user_id))
+    mock_get_user_by_id.assert_called_once_with(mocker.ANY, user_id=decrypt_id(mock_encrypt_user_id))

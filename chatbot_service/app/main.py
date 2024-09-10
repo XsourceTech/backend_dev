@@ -44,6 +44,7 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
     - **bot_memory**: The memory of the bot (conversation history).
     - **token**: The session token (authentication information).
     - **end**: A flag indicating whether it's the end of the conversation.
+    - **part**: The part name of chatbot like article, abstract etc.
 
     Returns the updated bot memory with the next message.
     """
@@ -52,7 +53,6 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
         if payload.get("type") != "auth":
             logger.warning("Token validation failed: Invalid token type for authentication.")
             raise HTTPException(status_code=400, detail="Invalid credentials")
-        user_id = payload.get("id")
     except JWTError as e:
         logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
@@ -63,14 +63,14 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
         logger.warning(f"Chat ended.")
         raise HTTPException(status_code=410, detail="Chat ended.")
 
-    reply = chatbot_client.get_reply(bot_memory, part, schemas.Level(current_level_str))
+    reply = chatbot_client.get_reply(bot_memory, schemas.Part(part), schemas.Level(current_level_str))
 
-    if not reply:
+    if reply is None:
         logger.warning(f"Get reply failed.")
         raise HTTPException(status_code=500, detail="Failed to get reply from the chatbot.")
 
     logger.info(f"Reply successfully.")
-    end = get_current_level(bot_memory) == 'end'
+    end = get_current_level(bot_memory, part) == 'end'
     bot_memory_with_end = schemas.BotMemoryWithEnd(bot_memory=bot_memory, end=end)
     return bot_memory_with_end
 
@@ -88,6 +88,7 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
 
     - **bot_memory**: The memory of the bot (conversation history).
     - **token**: The session token (authentication information).
+    - **part**: The part name of chatbot like article, abstract etc.
 
     Returns a summarized message.
     """
@@ -101,18 +102,22 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
         logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    summary = chatbot_client.summarize_info(bot_memory, part)
-    if not summary:
-        logger.warning(f"Get summary failed")
+    summary = chatbot_client.summarize_info(bot_memory, schemas.Part(part))
+    if summary is None:
+        logger.warning(f"Get summary failed for user: {user_id}")
         raise HTTPException(status_code=500, detail="Failed to get summary from the chatbot.")
 
-    #SHOULD BE CHANGED AFTER DISCUSSION WITH MODEL
-    article_create = schemas.ArticleCreate(title=summary.title, major=summary.major, field=summary.field,
-                                           topic=summary.topic, user_id=user_id)
-    article_client.create_article(article_create)
-    #SHOULD BE CHANGED AFTER DISCUSSION WITH MODEL
-
-    return {"status": 200, "message": "Article created."}
+    if part == "article":
+        article_create = schemas.ArticleCreate(title=summary.title, major=summary.major, field=summary.field,
+                                               topic=summary.topic, user_id=user_id)
+        response = article_client.create_article(article_create)
+        if response is None:
+            logger.warning(f"Article create failed for user: {user_id}")
+            raise HTTPException(status_code=500, detail="Failed to create article.")
+        return response
+    else:
+        # generate article part infomation and save, use article_part service
+        pass
 
 
 if __name__ == "__main__":

@@ -27,6 +27,9 @@ def get_user_by_id(db: Session, user_id: int):
 def get_article_by_user_id(db: Session, user_id: int):
     return db.query(Article).filter(Article.id == user_id).all()
 
+def get_article_by_article_id(db: Session, article_id: int):
+    return db.query(Article).filter(Article.article_id == article_id).first()
+
 
 def create_user(db: Session, user_create: UserCreate):
     hashed_password = pwd_context.hash(user_create.password)
@@ -89,11 +92,11 @@ def generate_active_token(email: str, expiration: int) -> str:
     return encoded_jwt
 
 
-def encrypt_user_id(user_id: int) -> str:
+def encrypt_id(user_id: int) -> str:
     encrypted_identity = cipher_suite.encrypt(str(user_id).encode('utf-8'))
     return encrypted_identity.decode('utf-8')
 
 
-def decrypt_user_id(encrypted_id: str) -> str:
+def decrypt_id(encrypted_id: str) -> str:
     decrypted_identity = cipher_suite.decrypt(encrypted_id.encode('utf-8'))
     return decrypted_identity.decode('utf-8')

@@ -11,7 +11,7 @@ class ChatbotClient:
     def __init__(self, base_url: str = settings.CHATBOT_SERVICE_URL):
         self.base_url = base_url
 
-    def get_reply(self, bot_memory: BotMemory, part: str, level: Level):
+    def get_reply(self, bot_memory: BotMemory, part: Part, level: Level):
         """
         Call the /reply_msg endpoint to get a reply based on the user's bot memory and level.
 
@@ -23,7 +23,8 @@ class ChatbotClient:
         url = f"{self.base_url}/reply_msg"
         payload = {
             "bot_memory": bot_memory.dict(),
-            "level": level.value  # Use .value to send the string representation of the enum
+            "level": level.value,
+            "part": part.value
         }
         try:
             response = requests.post(url, json=payload)
@@ -36,7 +37,7 @@ class ChatbotClient:
             logger.error(f"Request error occurred: {err}")
             return None
 
-    def summarize_info(self, bot_memory: BotMemory, part: str):
+    def summarize_info(self, bot_memory: BotMemory, part: Part):
         """
         Call the /summarize_info endpoint to get a summary of the bot memory.
 
@@ -45,8 +46,12 @@ class ChatbotClient:
         Returns a general summary of the bot memory.
         """
         url = f"{self.base_url}/summarize_info"
+        payload = {
+            "bot_memory": bot_memory.dict(),
+            "part": part.value
+        }
         try:
-            response = requests.post(url, json=bot_memory.dict())
+            response = requests.post(url, json=payload)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as http_err:

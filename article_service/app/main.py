@@ -39,10 +39,11 @@ def get_article_api(user_id: str = Query(..., description="The ID of the user wh
     """
     articles = get_article_by_user_id(db, user_id)
 
-    if not articles:
+    if articles is None:
         raise HTTPException(status_code=404, detail="No articles found for this user")
 
     article_infos = [schemas.ArticleInfo(
+        id=encrypt_id(article.article_id),
         title=article.article_title,
         major=article.article_major,
         field=article.article_field,
@@ -50,6 +51,35 @@ def get_article_api(user_id: str = Query(..., description="The ID of the user wh
     ) for article in articles]
 
     return schemas.Articles(article_infos=article_infos)
+
+
+@article_app.get("/get-article/{article_id}",
+                 response_model=schemas.ArticleInfo,
+                 tags=["Articles"],
+                 summary="Get article by ID",
+                 description="Retrieve an article by its ID.")
+def get_article_by_id_api(article_id: str = Path(..., description="The ID of the article to retrieve"),
+                          db: Session = Depends(get_db)):
+    """
+    Retrieve an article by its ID.
+
+    - **article_id**: The ID of the article to retrieve.
+
+    Returns the details of the article.
+    """
+    article_id = decrypt_id(article_id)
+    article = get_article_by_article_id(db, article_id)
+
+    if article is None:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    return schemas.ArticleInfo(
+        id=encrypt_id(article.article_id),
+        title=article.article_title,
+        major=article.article_major,
+        field=article.article_field,
+        topic=article.article_topic
+    )
 
 
 @article_app.delete("/delete-article/{article_id}",

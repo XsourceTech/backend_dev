@@ -1,12 +1,13 @@
 from database_sharing_service.app import schemas
 
 
-#TO BE CHANGED AFTER DISCUSSION WITH MODEL
-def get_current_level(bot_memory: schemas.BotMemory, part):
-    levels = ['major', 'field', 'topic', 'title', 'end']
+levels_dict = {}
+levels_dict["article"] = ['major', 'field', 'topic', 'title', 'end']
+
+def get_current_level(bot_memory: schemas.BotMemory, part: str):
+    levels = levels_dict[part]
     current_index = 0
     current_rounds = 0
-
     for chat_message in bot_memory:
         if current_index >= len(levels) - 1:
             break
@@ -20,4 +21,3 @@ def get_current_level(bot_memory: schemas.BotMemory, part):
                 current_index += 1
                 current_rounds = 0
     return levels[current_index]
-#TO BE CHANGED AFTER DISCUSSION WITH MODEL

@@ -196,7 +196,7 @@ async def query_user_by_id(user_id: str = Path(..., description="The ID of the u
 
     Returns the user's profile information if the user is found.
     """
-    user_id = decrypt_user_id(user_id)
+    user_id = decrypt_id(user_id)
     logger.info(f"Fetching user with ID: {user_id}")
     user = get_user_by_id(db, user_id=user_id)
     if user is None:

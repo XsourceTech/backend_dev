@@ -75,18 +75,19 @@ class Token(BaseModel):
 # Schema for ArticleCreate
 class ArticleCreate(BaseModel):
     title: str
-    major: str
-    field: str
-    topic: str
+    major: str | None = None
+    field: str | None = None
+    topic: str | None = None
     user_id: str
 
 
 # Schema for ArticleInfo
 class ArticleInfo(BaseModel):
+    id: str
     title: str
-    major: str
-    field: str
-    topic: str
+    major: str | None = None
+    field: str | None = None
+    topic: str | None = None
 
 
 # Schema for Articles
@@ -95,7 +96,18 @@ class Articles(BaseModel):
 
 
 class Level(str, Enum):
-    major = 'major'
-    field = 'field'
-    topic = 'topic'
-    title = 'title'
+    MAJOR = 'major'
+    FIELD = 'field'
+    TOPIC = 'topic'
+    TITLE = 'title'
+
+
+class Part(str, Enum):
+    ARTICLE = 'article'
+    ABSTRACT = 'abstract'
+    INTRODUCTION = 'introduction'
+    LITERATURE_REVIEW = 'literature_review'
+    METHODOLOGY = 'methodology'
+    RESULTS = 'results'
+    CONCLUSION = 'conclusion'
+    REFERENCES = 'references'
