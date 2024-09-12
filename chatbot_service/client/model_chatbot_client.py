@@ -7,7 +7,7 @@ from database_sharing_service.app.logging_config import get_logger
 logger = get_logger("ChatbotClient")
 
 
-class ChatbotClient:
+class ModelChatbotClient:
     def __init__(self, base_url: str = settings.CHATBOT_SERVICE_URL):
         self.base_url = base_url
 

@@ -138,13 +138,13 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="User not found")
 
         if user.is_active:
-            return responses.RedirectResponse(url="/react/user-verified")  # Redirect if user is already verified
+            return responses.RedirectResponse(url="/redirect/user-verified")  # Redirect if user is already verified
 
         user.is_active = True
         db.commit()
 
         logger.info(f"User account activated: {email}")
-        return RedirectResponse(url="/react/activation-success")  # Redirect to a success page
+        return RedirectResponse(url="/redirect/activation-success")  # Redirect to a success page
 
     except JWTError as e:
         logger.error(f"Token decoding failed: {str(e)}")
@@ -178,7 +178,7 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         db.commit()
 
         logger.info(f"User password reset: {email}")
-        return RedirectResponse(url="/react/password-reset-success")  # Redirect to a success page
+        return RedirectResponse(url="/redirect/password-reset-success")  # Redirect to a success page
 
     except JWTError as e:
         logger.error(f"Token decoding failed: {str(e)}")
@@ -187,7 +187,7 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
 
 @user_app.get("/user/{user_id}", response_model=schemas.User, tags=["Users"], summary="Get User by ID",
               description="Retrieve user details by their unique user ID.")
-async def query_user_by_id(user_id: str = Path(..., description="The ID of the user to retrieve"),
+async def query_user_by_id(user_encid: str = Path(..., description="The ID of the user to retrieve"),
                            db: Session = Depends(get_db)):
     """
     Retrieve user details by their unique user ID.
@@ -196,11 +196,11 @@ async def query_user_by_id(user_id: str = Path(..., description="The ID of the u
 
     Returns the user's profile information if the user is found.
     """
-    user_id = decrypt_id(user_id)
-    logger.info(f"Fetching user with ID: {user_id}")
-    user = get_user_by_id(db, user_id=user_id)
+    user_decid = decrypt_id(user_encid)
+    logger.info(f"Fetching user with ID: {user_decid}")
+    user = get_user_by_id(db, user_id=user_decid)
     if user is None:
-        logger.warning(f"User with ID {user_id} not found.")
+        logger.warning(f"User with ID {user_decid} not found.")
         raise HTTPException(status_code=404, detail="User not found")
     return user
 

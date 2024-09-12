@@ -28,7 +28,7 @@ logger = get_logger("Article_Service")
                  tags=["Articles"],
                  summary="Get user's created articles",
                  description="Retrieve the list of articles created by the user.")
-def get_article_api(user_id: str = Query(..., description="The ID of the user whose articles are being requested"),
+def get_article_api(user_encid: str = Query(..., description="The ID of the user whose articles are being requested"),
                     db: Session = Depends(get_db)):
     """
     Get a list of articles created by a user.
@@ -37,7 +37,8 @@ def get_article_api(user_id: str = Query(..., description="The ID of the user wh
 
     Returns a list of articles created by the user.
     """
-    articles = get_article_by_user_id(db, user_id)
+    user_decid = decrypt_id(user_encid)
+    articles = get_article_by_user_id(db, user_decid)
 
     if articles is None:
         raise HTTPException(status_code=404, detail="No articles found for this user")
@@ -53,12 +54,12 @@ def get_article_api(user_id: str = Query(..., description="The ID of the user wh
     return schemas.Articles(article_infos=article_infos)
 
 
-@article_app.get("/get-article/{article_id}",
+@article_app.get("/get-article/{article_encid}",
                  response_model=schemas.ArticleInfo,
                  tags=["Articles"],
                  summary="Get article by ID",
                  description="Retrieve an article by its ID.")
-def get_article_by_id_api(article_id: str = Path(..., description="The ID of the article to retrieve"),
+def get_article_by_id_api(article_encid: str = Path(..., description="The ID of the article to retrieve"),
                           db: Session = Depends(get_db)):
     """
     Retrieve an article by its ID.
@@ -67,8 +68,8 @@ def get_article_by_id_api(article_id: str = Path(..., description="The ID of the
 
     Returns the details of the article.
     """
-    article_id = decrypt_id(article_id)
-    article = get_article_by_article_id(db, article_id)
+    article_decid = decrypt_id(article_encid)
+    article = get_article_by_article_id(db, article_decid)
 
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
@@ -82,12 +83,12 @@ def get_article_by_id_api(article_id: str = Path(..., description="The ID of the
     )
 
 
-@article_app.delete("/delete-article/{article_id}",
+@article_app.delete("/delete-article/{article_encid}",
                     response_model=schemas.Message,
                     tags=["Articles"],
                     summary="Delete article",
                     description="Delete an article by its ID.")
-def delete_article_api(article_id: str = Path(..., description="The ID of the article to delete"),
+def delete_article_api(article_encid: str = Path(..., description="The ID of the article to delete"),
                        db: Session = Depends(get_db)):
     """
     Delete an article by its ID.
@@ -96,7 +97,8 @@ def delete_article_api(article_id: str = Path(..., description="The ID of the ar
 
     Returns a message confirming the deletion.
     """
-    delete = delete_article(db, article_id)
+    article_decid = decrypt_id(article_encid)
+    delete = delete_article(db, article_decid)
     if not delete:
         raise HTTPException(status_code=404, detail="Article not found")
     return {"status": "200", "message": "Article deleted"}

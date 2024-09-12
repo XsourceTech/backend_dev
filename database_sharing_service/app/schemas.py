@@ -61,9 +61,9 @@ class BotMemory(BaseModel):
     chat_messages: List[ChatMessage]
 
 
-class BotMemoryWithEnd(BaseModel):
+class BotMemoryWithEndFlag(BaseModel):
     bot_memory: BotMemory
-    end: bool
+    is_end: bool
 
 
 # Schema for Token
@@ -74,11 +74,11 @@ class Token(BaseModel):
 
 # Schema for ArticleCreate
 class ArticleCreate(BaseModel):
+    user_id: str
     title: str
     major: str | None = None
     field: str | None = None
     topic: str | None = None
-    user_id: str
 
 
 # Schema for ArticleInfo

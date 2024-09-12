@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from . import models
 from .config import settings
 from .models import User, Article
-from .schemas import *
+from .schemas import UserCreate, ArticleCreate
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
 
@@ -92,8 +92,8 @@ def generate_active_token(email: str, expiration: int) -> str:
     return encoded_jwt
 
 
-def encrypt_id(user_id: int) -> str:
-    encrypted_identity = cipher_suite.encrypt(str(user_id).encode('utf-8'))
+def encrypt_id(id: int) -> str:
+    encrypted_identity = cipher_suite.encrypt(str(id).encode('utf-8'))
     return encrypted_identity.decode('utf-8')
 
 

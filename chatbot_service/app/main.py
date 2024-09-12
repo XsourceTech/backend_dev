@@ -7,7 +7,7 @@ from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from chatbot_service.app.utils import *
-from chatbot_service.client.chatbot_client import ChatbotClient
+from chatbot_service.client.model_chatbot_client import ModelChatbotClient
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 import uvicorn
@@ -26,12 +26,12 @@ chatbot_app = FastAPI(
 
 logger = get_logger("Chatbot_Service")
 
-chatbot_client = ChatbotClient()
+chatbot_client = ModelChatbotClient()
 article_client = ArticleClient()
 
 
-@chatbot_app.get("/get-response",
-                 response_model=schemas.BotMemoryWithEnd,
+@chatbot_app.post("/get-response",
+                 response_model=schemas.BotMemoryWithEndFlag,
                  tags=["Chatbot Responses"],
                  summary="Generate next bot message",
                  description="Generate the next bot message based on memory, token, and other parameters.")
@@ -58,6 +58,9 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     current_level_str = get_current_level(bot_memory, part)
+    if current_level_str is None:
+        logger.warning(f"User input empty.")
+        raise HTTPException(status_code=500, detail="Input empty or role incorrect.")
 
     if current_level_str == 'end':
         logger.warning(f"Chat ended.")
@@ -71,8 +74,8 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
 
     logger.info(f"Reply successfully.")
     end = get_current_level(bot_memory, part) == 'end'
-    bot_memory_with_end = schemas.BotMemoryWithEnd(bot_memory=bot_memory, end=end)
-    return bot_memory_with_end
+    bot_memory_with_end_flag = schemas.BotMemoryWithEndFlag(bot_memory=bot_memory, end=end)
+    return bot_memory_with_end_flag
 
 
 @chatbot_app.post("/summarize",
@@ -108,8 +111,8 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
         raise HTTPException(status_code=500, detail="Failed to get summary from the chatbot.")
 
     if part == "article":
-        article_create = schemas.ArticleCreate(title=summary.title, major=summary.major, field=summary.field,
-                                               topic=summary.topic, user_id=user_id)
+        article_create = schemas.ArticleCreate(title=summary.get("title"), major=summary.get("major"), field=summary.get("field"),
+                                               topic=summary.get("topic"), user_id=user_id)
         response = article_client.create_article(article_create)
         if response is None:
             logger.warning(f"Article create failed for user: {user_id}")
