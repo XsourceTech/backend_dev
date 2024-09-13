@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
-from database_sharing_service.app import schemas
+from azure.storage.blob import BlobServiceClient
+from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form, UploadFile, File
+from database_sharing_service.app import schemas, __init__
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
@@ -124,3 +125,59 @@ def create_article_api(article: schemas.ArticleCreate, db: Session = Depends(get
 
 if __name__ == "__main__":
     uvicorn.run("main:article_app", host="0.0.0.0", port=8005, reload=True)
+
+
+# Initialize Azure Blob Storage client
+blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
+container_client = blob_service_client.get_container_client(settings.AZURE_CONTAINER_NAME)
+
+
+@article_app.post("/upload/")
+async def upload_file(user_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Upload a file to Azure Blob Storage and save its metadata to the PostgreSQL database.
+    """
+    try:
+        # Upload file to Azure Blob Storage
+        blob_name = f"{user_id}/{file.filename}"
+        blob_client = container_client.get_blob_client(blob_name)
+        blob_client.upload_blob(file.file)
+
+        # Save file metadata to the PostgreSQL database
+        blob_url = blob_client.url
+        saved_metadata = save_metadata_to_db(db, user_id=user_id, filename=file.filename,
+                                             content_type=file.content_type, blob_url=blob_url)
+
+        return {"message": "File uploaded successfully", "file_metadata": saved_metadata}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {e}")
+
+
+@article_app.delete("/delete-file/")
+async def delete_file(user_id: str, filename: str, db: Session = Depends(get_db)):
+    """
+    Delete a file from Azure Blob Storage and remove its metadata from the PostgreSQL database.
+    """
+    try:
+        # Delete the file from Azure Blob Storage
+        blob_name = f"{user_id}/{filename}"
+        blob_client = container_client.get_blob_client(blob_name)
+
+        if blob_client.exists():
+            blob_client.delete_blob()
+        else:
+            raise HTTPException(status_code=404, detail=f"File '{filename}' not found in Azure Blob Storage.")
+
+        # Delete file metadata from the PostgreSQL database
+        metadata_deleted = delete_metadata_from_db(db, user_id, filename)
+
+        if not metadata_deleted:
+            raise HTTPException(status_code=404, detail=f"Metadata for file '{filename}' not found in the database.")
+
+        return {"message": f"File '{filename}' and its metadata successfully deleted."}
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete file: {e}")

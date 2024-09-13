@@ -1,8 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
-
+from fastapi import FastAPI, HTTPException, Depends, Query
 from chatbot_service.client.article_client import ArticleClient
-from database_sharing_service.app import schemas
-from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
@@ -121,7 +118,6 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
     else:
         # generate article part infomation and save, use article_part service
         pass
-
 
 if __name__ == "__main__":
     uvicorn.run("main:chatbot_app", host="0.0.0.0", port=8004, reload=True)

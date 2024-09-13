@@ -1,13 +1,12 @@
 from datetime import timedelta, datetime
 
-from fastapi import HTTPException
 from jose import jwt
 from sqlalchemy.orm import Session
 
 from . import models
 from .config import settings
-from .models import User, Article
-from .schemas import UserCreate, ArticleCreate
+from .models import User, Article, FileMetadata
+from .schemas import *
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
 
@@ -92,11 +91,46 @@ def generate_active_token(email: str, expiration: int) -> str:
     return encoded_jwt
 
 
-def encrypt_id(id: int) -> str:
-    encrypted_identity = cipher_suite.encrypt(str(id).encode('utf-8'))
+def encrypt_id(user_id: int) -> str:
+    encrypted_identity = cipher_suite.encrypt(str(user_id).encode('utf-8'))
     return encrypted_identity.decode('utf-8')
 
 
 def decrypt_id(encrypted_id: str) -> str:
     decrypted_identity = cipher_suite.decrypt(encrypted_id.encode('utf-8'))
     return decrypted_identity.decode('utf-8')
+
+def save_metadata_to_db(db: Session, user_id: str, filename: str, content_type: str, blob_url: str) -> FileMetadata:
+    """
+    Saves file metadata to the database.
+    """
+    try:
+        file_metadata = FileMetadata(
+            user_id=user_id,
+            filename=filename,
+            content_type=content_type,
+            blob_url=blob_url
+        )
+        db.add(file_metadata)
+        db.commit()
+        db.refresh(file_metadata)
+        return file_metadata
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Failed to save file metadata to the database: {e}")
+
+
+def delete_metadata_from_db(db: Session, user_id: str, filename: str) -> bool:
+    """
+    Deletes file metadata from the database based on user ID and filename.
+    """
+    try:
+        metadata = db.query(FileMetadata).filter_by(user_id=user_id, filename=filename).first()
+        if metadata:
+            db.delete(metadata)
+            db.commit()
+            return True
+        return False  # Metadata not found
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Failed to delete metadata from the database: {e}")
