@@ -12,6 +12,8 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 import uvicorn
 
+from database_sharing_service.app.schemas import BotMemory
+
 chatbot_app = FastAPI(
     title="ChatbotArticle Service",
     description="Service for generating and summarizing chatbot responses.",
@@ -74,7 +76,8 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
 
     logger.info(f"Reply successfully.")
     end = get_current_level(bot_memory, part) == 'end'
-    bot_memory_with_end_flag = schemas.BotMemoryWithEndFlag(bot_memory=bot_memory, end=end)
+    bot_memory_reply = BotMemory.parse_obj({"chat_messages": reply.get('bot_memory')})
+    bot_memory_with_end_flag = schemas.BotMemoryWithEndFlag(bot_memory=bot_memory_reply, is_end=end)
     return bot_memory_with_end_flag
 
 
@@ -112,7 +115,7 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
 
     if part == "article":
         article_create = schemas.ArticleCreate(title=summary.get("title"), major=summary.get("major"), field=summary.get("field"),
-                                               topic=summary.get("topic"), user_id=user_id)
+                                               topic=summary.get("topic"), user_id=str(user_id))
         response = article_client.create_article(article_create)
         if response is None:
             logger.warning(f"Article create failed for user: {user_id}")

@@ -111,3 +111,13 @@ class Part(str, Enum):
     RESULTS = 'results'
     CONCLUSION = 'conclusion'
     REFERENCES = 'references'
+
+
+class FileMetadataResponse(BaseModel):
+    id: int
+    filename: str
+    content_type: str
+    blob_url: str
+
+    class Config:
+        from_attributes = True

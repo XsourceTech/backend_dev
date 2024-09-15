@@ -18,3 +18,4 @@ alembic==1.11.1           # Database migrations tool compatible with SQLAlchemy
 python-dotenv==1.0.0      # Loading environment variables from a shared .env.production file
 psycopg2-binary==2.9.9    # PostgreSQL database adapter
 cryptography==43.0.1      # Cryption and decryption of user id
+azure-storage-blob==12.17.0 # Azure blob storage

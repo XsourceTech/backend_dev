@@ -12,7 +12,7 @@ class Settings:
                              default='postgresql')  #postgresql://postgresadmin@psql-i-xtech:mW%23M%2Ch8ykXNAonOMdDO3Jlbq5GFrqO@psql-i-xtech.postgres.database.azure.com:5432/xsource_db?sslmode=require
     SECRET_KEY = os.getenv('SECRET_KEY', default='default_secret_key')
     ALGORITHM = 'HS256'
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES = 1440
     SMTP_SERVER = os.getenv('SMTP_SERVER', default='smtp.example.com')
     SMTP_PORT = 587
     MAIL_USERNAME = os.getenv('MAIL_USERNAME', default='your_email@example.com')
@@ -23,6 +23,8 @@ class Settings:
     ARTICLE_SERVICE_URL = os.getenv('ARTICLE_SERVICE_URL', default='http://localhost:8005/')
     CHATBOT_SERVICE_URL = os.getenv('CHATBOT_SERVICE_URL', default='http://localhost:8004/')
     FERNET_KEY = os.getenv('FERNET_KEY', default='default_fernet_key')
+    AZURE_CONNECTION_STRING = os.getenv('AZURE_CONNECTION_STRING')
+    AZURE_CONTAINER_NAME = os.getenv('AZURE_CONTAINER_NAME')
 
 
 settings = Settings()

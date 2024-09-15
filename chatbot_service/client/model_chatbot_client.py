@@ -22,7 +22,7 @@ class ModelChatbotClient:
         """
         url = f"{self.base_url}/reply_msg"
         payload = {
-            "bot_memory": bot_memory.dict(),
+            "bot_memory": bot_memory.dict()["chat_messages"],
             "level": level.value,
             "part": part.value
         }
@@ -47,7 +47,7 @@ class ModelChatbotClient:
         """
         url = f"{self.base_url}/summarize_info"
         payload = {
-            "bot_memory": bot_memory.dict(),
+            "bot_memory": bot_memory.dict()["chat_messages"],
             "part": part.value
         }
         try:

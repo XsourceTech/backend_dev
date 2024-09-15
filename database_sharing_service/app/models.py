@@ -32,3 +32,11 @@ class Article(Base):
     id = Column(Integer, ForeignKey('users.id'))
 
     author = relationship('User', back_populates='articles')
+
+
+class FileMetadata(Base):
+    __tablename__ = "file_metadata"
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, index=True)
+    content_type = Column(String)
+    blob_url = Column(String)
