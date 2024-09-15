@@ -1,8 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
-
+from fastapi import FastAPI, HTTPException, Depends, Query
 from chatbot_service.client.article_client import ArticleClient
-from database_sharing_service.app import schemas
-from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
@@ -33,10 +30,10 @@ article_client = ArticleClient()
 
 
 @chatbot_app.post("/get-response",
-                 response_model=schemas.BotMemoryWithEndFlag,
-                 tags=["Chatbot Responses"],
-                 summary="Generate next bot message",
-                 description="Generate the next bot message based on memory, token, and other parameters.")
+                  response_model=schemas.BotMemoryWithEndFlag,
+                  tags=["Chatbot Responses"],
+                  summary="Generate next bot message",
+                  description="Generate the next bot message based on memory, token, and other parameters.")
 def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
                  part: str = Query(..., description="Part name of chatbot like article, abstract etc"),
                  db: Session = Depends(get_db)):
@@ -114,7 +111,8 @@ def summarize(bot_memory: schemas.BotMemory, token: schemas.Token,
         raise HTTPException(status_code=500, detail="Failed to get summary from the chatbot.")
 
     if part == "article":
-        article_create = schemas.ArticleCreate(title=summary.get("title"), major=summary.get("major"), field=summary.get("field"),
+        article_create = schemas.ArticleCreate(title=summary.get("title"), major=summary.get("major"),
+                                               field=summary.get("field"),
                                                topic=summary.get("topic"), user_id=str(user_id))
         response = article_client.create_article(article_create)
         if response is None:
