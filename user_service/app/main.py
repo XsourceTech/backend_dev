@@ -185,22 +185,28 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
 
-@user_app.get("/user/{user_id}", response_model=schemas.User, tags=["Users"], summary="Get User by ID",
-              description="Retrieve user details by their unique user ID.")
-async def query_user_by_id(user_encid: str = Path(..., description="The ID of the user to retrieve"),
-                           db: Session = Depends(get_db)):
+@user_app.get("/users/{token}", response_model=schemas.User, tags=["Users"], summary="Get User by Token",
+              description="Retrieve user details by their authentication token.")
+async def query_user_by_token(token: str = Path(..., description="The authentication token of the user to retrieve"),
+                              db: Session = Depends(get_db)):
     """
-    Retrieve user details by their unique user ID.
+    Retrieve user details by their authentication token.
 
-    - **user_id**: The unique identifier of the user.
+    - **token**: The authentication token of the user.
 
-    Returns the user's profile information if the user is found.
+    Returns the user's profile information if the token is valid.
     """
-    user_decid = decrypt_id(user_encid)
-    logger.info(f"Fetching user with ID: {user_decid}")
-    user = get_user_by_id(db, user_id=user_decid)
+    token_data = auth_client.validate_token(token)
+    if not token_data:
+        logger.warning("Token validation failed.")
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_id = token_data.get('id')
+    if not user_id:
+        logger.warning("No user ID found in token data.")
+        raise HTTPException(status_code=400, detail="Invalid token data")
+    user = get_user_by_id(db, user_id=user_id)
     if user is None:
-        logger.warning(f"User with ID {user_decid} not found.")
+        logger.warning(f"User with ID {user_id} not found.")
         raise HTTPException(status_code=404, detail="User not found")
     return user
 

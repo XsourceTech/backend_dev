@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form, UploadFile, File
+
+from article_service.client.auth_client import AuthClient
 from database_sharing_service.app import schemas, __init__
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
@@ -27,6 +29,8 @@ article_app = FastAPI(
 blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
 container_client = blob_service_client.get_container_client(settings.AZURE_CONTAINER_NAME)
 
+auth_client = AuthClient()
+
 logger = get_logger("Article_Service")
 
 
@@ -35,17 +39,26 @@ logger = get_logger("Article_Service")
                  tags=["Articles"],
                  summary="Get user's created articles",
                  description="Retrieve the list of articles created by the user.")
-def get_article_api(user_encid: str = Query(..., description="The ID of the user whose articles are being requested"),
+def get_article_api(token: str = Query(..., description="The authentication token of the user"),
                     db: Session = Depends(get_db)):
     """
     Get a list of articles created by a user.
 
-    - **user_id**: The ID of the user whose articles are being requested.
+    - **token**: The authentication token of the user.
 
     Returns a list of articles created by the user.
     """
-    user_decid = decrypt_id(user_encid)
-    articles = get_article_by_user_id(db, user_decid)
+    token_data = auth_client.validate_token(token)
+    if not token_data:
+        logger.warning("Token validation failed.")
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user_id = token_data.get('id')
+    if not user_id:
+        logger.warning("No user ID found in token data.")
+        raise HTTPException(status_code=400, detail="Invalid token data")
+
+    articles = get_article_by_user_id(db, user_id)
 
     if articles is None:
         raise HTTPException(status_code=404, detail="No articles found for this user")
