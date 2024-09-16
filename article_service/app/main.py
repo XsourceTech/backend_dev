@@ -1,16 +1,12 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form, UploadFile, File
-
 from article_service.client.auth_client import AuthClient
 from database_sharing_service.app import schemas, __init__
-from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from sqlalchemy.orm import Session
-from jose import jwt, JWTError
 import uvicorn
 
 article_app = FastAPI(
@@ -25,7 +21,7 @@ article_app = FastAPI(
     ],
 )
 
-# Initialize Azure Blob Storage client
+# Initialize Azure Blob Storage clients
 blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
 container_client = blob_service_client.get_container_client(settings.AZURE_CONTAINER_NAME)
 
@@ -137,9 +133,13 @@ def create_article_api(article: schemas.ArticleCreate, db: Session = Depends(get
 
     Returns a message confirming the article creation.
     """
-    new_article = create_article(db, article)
-    logger.info(f"Article created: {new_article.article_title}")
-    return {"status": "200", "message": "Article created"}
+    try:
+        new_article = create_article(db, article)
+        logger.info(f"Article created: {new_article.article_title}")
+        return {"status": "200", "message": "Article created"}
+    except Exception as e:
+        logger.error(f"Error creating article: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @article_app.post("/upload/")

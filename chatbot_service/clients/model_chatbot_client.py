@@ -8,7 +8,7 @@ logger = get_logger("ChatbotClient")
 
 
 class ModelChatbotClient:
-    def __init__(self, base_url: str = settings.CHATBOT_SERVICE_URL):
+    def __init__(self, base_url: str = settings.MODEL_CHATBOT_SERVICE_URL):
         self.base_url = base_url
 
     def get_reply(self, bot_memory: BotMemory, part: Part, level: Level):

@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends, Query
-from chatbot_service.client.article_client import ArticleClient
+from chatbot_service.clients.article_client import ArticleClient
 from database_sharing_service.app.crud import *
 from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from chatbot_service.app.utils import *
-from chatbot_service.client.model_chatbot_client import ModelChatbotClient
+from chatbot_service.clients.model_chatbot_client import ModelChatbotClient
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 import uvicorn
@@ -59,7 +59,7 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
     current_level_str = get_current_level(bot_memory, part)
     if current_level_str is None:
         logger.warning(f"User input empty.")
-        raise HTTPException(status_code=500, detail="Input empty or role incorrect.")
+        raise HTTPException(status_code=400, detail="Input empty or role incorrect.")
 
     if current_level_str == 'end':
         logger.warning(f"Chat ended.")
@@ -69,11 +69,11 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
 
     if reply is None:
         logger.warning(f"Get reply failed.")
-        raise HTTPException(status_code=500, detail="Failed to get reply from the chatbot.")
+        raise HTTPException(status_code=503, detail="Failed to get reply from the chatbot.")
 
     logger.info(f"Reply successfully.")
-    end = get_current_level(bot_memory, part) == 'end'
     bot_memory_reply = BotMemory.parse_obj({"chat_messages": reply.get('bot_memory')})
+    end = get_current_level(bot_memory_reply, part) == 'end'
     bot_memory_with_end_flag = schemas.BotMemoryWithEndFlag(bot_memory=bot_memory_reply, is_end=end)
     return bot_memory_with_end_flag
 
