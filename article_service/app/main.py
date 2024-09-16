@@ -1,6 +1,6 @@
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form, UploadFile, File
-from article_service.client.auth_client import AuthClient
+from article_service.clients.auth_client import AuthClient
 from database_sharing_service.app import schemas, __init__
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.crud import *
