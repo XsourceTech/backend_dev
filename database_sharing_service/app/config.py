@@ -22,7 +22,7 @@ class Settings:
     AUTH_SERVICE_URL = os.getenv('AUTH_SERVICE_URL', default='http://localhost:8002/')
     ARTICLE_SERVICE_URL = os.getenv('ARTICLE_SERVICE_URL', default='http://localhost:8005/')
     CHATBOT_SERVICE_URL = os.getenv('CHATBOT_SERVICE_URL', default='http://localhost:8004/')
-    MODEL_CHATBOT_SERVICE_URL = os.getenv('MODEL_CHATBOT_SERVICE_URL', default='http://localhost:8004/')
+    MODEL_CHATBOT_SERVICE_URL = os.getenv('MODEL_CHATBOT_SERVICE_URL', default='https://model-i-xtech.azurewebsites.net/')
     FERNET_KEY = os.getenv('FERNET_KEY', default='default_fernet_key')
     AZURE_CONNECTION_STRING = os.getenv('AZURE_CONNECTION_STRING')
     AZURE_CONTAINER_NAME = os.getenv('AZURE_CONTAINER_NAME')
