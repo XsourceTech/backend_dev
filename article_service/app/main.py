@@ -139,7 +139,7 @@ def create_article_api(article: schemas.ArticleCreate, db: Session = Depends(get
         return {"status": "200", "message": "Article created"}
     except Exception as e:
         logger.error(f"Error creating article: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail="Fail to create article.")
 
 
 @article_app.post("/upload/")

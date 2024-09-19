@@ -46,8 +46,17 @@ RUN pip install -r /app/email_service/requirements.txt
 RUN pip install -r /app/auth_service/requirements.txt
 RUN pip install -r /app/shared_requirements.txt
 
-# Expose ports needed for the services
-EXPOSE 8001 8002 8003 8004 8005
+# Nginx 阶段使用 integration 阶段的构建输出
+FROM nginx:latest AS final
 
-# Run the application
-CMD ["python","./super_start.py"]
+# 复制Nginx配置文件
+COPY ./nginx.conf /etc/nginx/nginx.conf
+
+# 复制Python应用服务构建输出
+COPY --from=integration /app /app
+
+# Expose ports needed for the services
+EXPOSE 80 443
+
+# 启动Nginx和应用
+CMD ["sh", "-c", "nginx && python /app/super_start.py"]

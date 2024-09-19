@@ -59,7 +59,11 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     token = generate_active_token(user.email, 10)
     if not token:
         raise HTTPException(status_code=500, detail="Failed to generate activation token")
-    email_client.send_activation_email(user.email, token)
+    try:
+        email_client.send_activation_email(user.email, token)
+    except Exception as e:
+        logger.info(f"Fail to send email for user: {user.email}")
+        raise HTTPException(status_code=400, detail="Invalid email")
     logger.info(f"Activation email sent to: {user.email}")
     new_user = create_user(db, user)
     logger.info(f"User created: {new_user.email}")
@@ -106,8 +110,11 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
     if not reset_token:
         logger.warning(f"Reset failed for user: {user.email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
-
-    email_client.send_password_reset_email(user.email, reset_token)
+    try:
+        email_client.send_password_reset_email(user.email, reset_token)
+    except Exception as e:
+        logger.info(f"Fail to send email for user: {user.email}")
+        raise HTTPException(status_code=400, detail="Invalid email")
     logger.info(f"Activation email sent to: {user.email}")
 
     return {"status": "200", "message": "Email sent"}
