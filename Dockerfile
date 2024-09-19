@@ -52,7 +52,7 @@ COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose ports needed for the services
-EXPOSE 80 443
+EXPOSE 80 443 8001 8002 8003 8004 8005
 
 # 启动Nginx和应用
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
