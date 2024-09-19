@@ -1,5 +1,5 @@
 # Use an official Python 3.12 runtime as a parent image
-FROM python:3.12-slim AS integration
+FROM python:3.12-slim AS intergration
 
 # Copy the environment file into the container based on the provided environment argument
 ARG ENVIRONMENT
@@ -8,7 +8,7 @@ COPY ./.env.${ENVIRONMENT} /app/.env
 # Set the working directory in the container
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y supervisor
+RUN apt-get update && apt-get install -y nginx supervisor
 
 # Copy the shared_requirements.txt from the project root
 COPY ./shared_requirements.txt /app/
@@ -46,16 +46,10 @@ RUN pip install -r /app/email_service/requirements.txt
 RUN pip install -r /app/auth_service/requirements.txt
 RUN pip install -r /app/shared_requirements.txt
 
-# Nginx 阶段使用 integration 阶段的构建输出
-FROM nginx:latest AS final
-
 # 复制Nginx配置文件
 COPY ./nginx.conf /etc/nginx/nginx.conf
 # 复制 supervisord 配置
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# 复制Python应用服务构建输出
-COPY --from=integration /app /app
 
 # Expose ports needed for the services
 EXPOSE 80 443
