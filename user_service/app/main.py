@@ -27,9 +27,9 @@ user_app = FastAPI(
             "description": "Operations related to user authentication, such as token generation and validation.",
         },
     ],
-    docs_url='/user/docs',
-    redoc_url='/user/redoc',
-    openapi_url='/user/openapi.json'
+    docs_url='/docs',
+    redoc_url='/redoc',
+    openapi_url='/openapi.json'
 )
 
 logger = get_logger("User_Service")

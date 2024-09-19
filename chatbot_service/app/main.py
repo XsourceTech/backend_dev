@@ -21,9 +21,9 @@ chatbot_app = FastAPI(
             "description": "Operations related to chatbot responses generation and summarization.",
         },
     ],
-    docs_url='/chatbot/docs',
-    redoc_url='/chatbot/redoc',
-    openapi_url='/chatbot/openapi.json'
+    docs_url='/docs',
+    redoc_url='/redoc',
+    openapi_url='/openapi.json'
 )
 
 logger = get_logger("Chatbot_Service")
