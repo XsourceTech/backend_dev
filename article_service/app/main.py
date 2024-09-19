@@ -19,8 +19,6 @@ article_app = FastAPI(
             "description": "Operations related to articles such as retrieval, creation, and deletion.",
         },
     ],
-    docs_url='/docs',
-    redoc_url='/redoc',
     openapi_url='/openapi.json'
 )
 

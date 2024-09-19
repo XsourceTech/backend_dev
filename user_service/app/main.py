@@ -27,8 +27,6 @@ user_app = FastAPI(
             "description": "Operations related to user authentication, such as token generation and validation.",
         },
     ],
-    docs_url='/docs',
-    redoc_url='/redoc',
     openapi_url='/openapi.json'
 )
 

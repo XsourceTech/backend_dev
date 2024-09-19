@@ -21,8 +21,6 @@ chatbot_app = FastAPI(
             "description": "Operations related to chatbot responses generation and summarization.",
         },
     ],
-    docs_url='/docs',
-    redoc_url='/redoc',
     openapi_url='/openapi.json'
 )
 
