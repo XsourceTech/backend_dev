@@ -8,7 +8,7 @@ COPY ./.env.${ENVIRONMENT} /app/.env
 # Set the working directory in the container
 WORKDIR /app
 
-
+RUN apt-get update && apt-get install -y supervisor
 
 # Copy the shared_requirements.txt from the project root
 COPY ./shared_requirements.txt /app/
@@ -51,6 +51,8 @@ FROM nginx:latest AS final
 
 # 复制Nginx配置文件
 COPY ./nginx.conf /etc/nginx/nginx.conf
+# 复制 supervisord 配置
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # 复制Python应用服务构建输出
 COPY --from=integration /app /app
@@ -59,4 +61,4 @@ COPY --from=integration /app /app
 EXPOSE 80 443
 
 # 启动Nginx和应用
-CMD ["sh", "-c", "nginx && python /app/super_start.py"]
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
