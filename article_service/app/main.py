@@ -19,6 +19,9 @@ article_app = FastAPI(
             "description": "Operations related to articles such as retrieval, creation, and deletion.",
         },
     ],
+    docs_url='/article/docs',
+    redoc_url='/article/redoc',
+    openapi_url='/article/openapi.json'
 )
 
 # Initialize Azure Blob Storage clients
@@ -34,7 +37,7 @@ logger = get_logger("Article_Service")
                  response_model=schemas.Articles,
                  tags=["Articles"],
                  summary="Get user's created articles",
-                 description="Retrieve the list of articles created by the user.")
+                 description="Retrieve the list of articles created by the user.", )
 def get_article_api(token: str = Query(..., description="The authentication token of the user"),
                     db: Session = Depends(get_db)):
     """
