@@ -21,7 +21,7 @@ chatbot_app = FastAPI(
             "description": "Operations related to chatbot responses generation and summarization.",
         },
     ],
-    openapi_url='/chatbot/openapi.json'
+    openapi_url='/openapi.json'
 )
 
 logger = get_logger("Chatbot_Service")
