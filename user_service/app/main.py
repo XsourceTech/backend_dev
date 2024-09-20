@@ -27,7 +27,7 @@ user_app = FastAPI(
             "description": "Operations related to user authentication, such as token generation and validation.",
         },
     ],
-    openapi_url='/openapi.json'
+    openapi_url='/user/openapi.json'
 )
 
 logger = get_logger("User_Service")
