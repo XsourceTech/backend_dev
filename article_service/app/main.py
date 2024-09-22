@@ -19,7 +19,9 @@ article_app = FastAPI(
             "description": "Operations related to articles such as retrieval, creation, and deletion.",
         },
     ],
-    openapi_url='/openapi.json',
+    docs_url='/article/docs',
+    redoc_url='/article/redoc',
+    openapi_url='/article/openapi.json'
 )
 
 # Initialize Azure Blob Storage clients
