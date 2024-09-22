@@ -20,7 +20,7 @@ def get_current_level(bot_memory: schemas.BotMemory, part: str):
             if ("谢谢你的回答。我了解了" in chat_message.content or "再次感谢你的回答" in chat_message.content) and not re.search(r'[\u003F\uFF1F]$', chat_message.content):
                 current_index += 1
                 current_rounds = 0
-            elif current_rounds >= 4:
+            elif current_rounds > 4:
                 current_index += 1
                 current_rounds = 0
         else:
