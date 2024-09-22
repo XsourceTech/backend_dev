@@ -82,10 +82,21 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
     Returns a JWT token if the credentials are valid.
     """
     logger.info(f"User attempting to log in: {user.email}")
-    token = auth_client.authenticate_user(user.email, user.password)
-    if not token:
-        logger.warning(f"Login failed for user: {user.email}")
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+    try:
+        token = auth_client.authenticate_user(user.email, user.password)
+
+        if not token:
+            logger.warning(f"Login failed for user: {user.email}")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    except HTTPException as http_exc:
+        logger.warning(f"HTTP exception raised during authentication for user: {user.email} - {http_exc.detail}")
+        raise http_exc
+
+    except Exception as exc:
+        logger.error(f"Unexpected error during login for user: {user.email} - {str(exc)}")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred during authentication")
+
     logger.info(f"User logged in successfully: {user.email}")
     return {"access_token": token, "token_type": "bearer"}
 
@@ -135,10 +146,10 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         if payload.get("type") != "active":
             logger.warning("Token validation failed: Invalid token type for user activation.")
-            raise HTTPException(status_code=400, detail="Invalid credentials")
+            raise HTTPException(status_code=400, detail="Invalid token")
         email: str = payload.get("email")
         if email is None:
-            raise HTTPException(status_code=400, detail="Invalid credentials")
+            raise HTTPException(status_code=400, detail="Invalid token")
 
         user = get_user_by_email(db, email=email)
         if user is None:
@@ -173,10 +184,10 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         if payload.get("type") != "reset":
             logger.warning("Token validation failed: Invalid token type for password reset.")
-            raise HTTPException(status_code=400, detail="Invalid credentials")
+            raise HTTPException(status_code=400, detail="Invalid token")
         email: str = payload.get("email")
         if email is None:
-            raise HTTPException(status_code=400, detail="Invalid credentials")
+            raise HTTPException(status_code=400, detail="Invalid token")
         user = get_user_by_email(db, email=email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
@@ -210,7 +221,7 @@ async def query_user_by_token(token: str = Path(..., description="The authentica
     user_id = token_data.get('id')
     if not user_id:
         logger.warning("No user ID found in token data.")
-        raise HTTPException(status_code=400, detail="Invalid token data")
+        raise HTTPException(status_code=400, detail="Invalid token")
     user = get_user_by_id(db, user_id=user_id)
     if user is None:
         logger.warning(f"User with ID {user_id} not found.")
