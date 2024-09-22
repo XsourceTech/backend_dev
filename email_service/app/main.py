@@ -1,8 +1,8 @@
 import uvicorn
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from pydantic import EmailStr
-
+from aiosmtplib.errors import SMTPRecipientsRefused
 from database_sharing_service.app import schemas
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.logging_config import get_logger
@@ -34,6 +34,15 @@ conf = ConnectionConfig(
 )
 
 
+async def send_email_task(fm: FastMail, message: MessageSchema):
+    try:
+        await fm.send_message(message)
+    except SMTPRecipientsRefused as exc:
+        raise HTTPException(status_code=400, detail=f"Failed to send email: {str(exc)}")  # 抛出HTTPException
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Unexpected error")
+
+
 @email_app.post("/send-activation-email", response_model=schemas.Message, tags=["Emails"],
                 summary="Send Activation Email",
                 description="Send an account activation email with a token.")
@@ -56,8 +65,17 @@ async def send_activation_email(email: EmailStr, token: str, background_tasks: B
         subtype="html"
     )
     fm = FastMail(conf)
-    background_tasks.add_task(fm.send_message, message)
-    logger.info(f"Activation email queued for sending to: {email}")
+
+    try:
+        await send_email_task(fm, message)
+    except SMTPRecipientsRefused as exc:
+        logger.error(f"Failed to send activation email to {email}: {exc}")
+        raise HTTPException(status_code=400, detail=f"Failed to send email: {str(exc)}")
+    except Exception as exc:
+        logger.error(f"Unexpected error occurred while sending activation email to {email}: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to send activation email")
+
+    logger.info(f"Activation email sent to: {email}")
     return {"status": "200", "message": "Activation email sent"}
 
 
@@ -82,8 +100,17 @@ async def send_password_reset_email(email: str, token: str, background_tasks: Ba
         subtype="html"
     )
     fm = FastMail(conf)
-    background_tasks.add_task(fm.send_message, message)
-    logger.info(f"Password reset email queued for sending to: {email}")
+
+    try:
+        await send_email_task(fm, message)
+    except SMTPRecipientsRefused as exc:
+        logger.error(f"Failed to send password reset email to {email}: {exc}")
+        raise HTTPException(status_code=400, detail=f"Failed to send email: {str(exc)}")
+    except Exception as exc:
+        logger.error(f"Unexpected error occurred while sending password reset email to {email}: {exc}")
+        raise HTTPException(status_code=500, detail="Failed to send password reset email")
+
+    logger.info(f"Password reset email sent to: {email}")
     return {"status": "200", "message": "Password reset email sent"}
 
 
