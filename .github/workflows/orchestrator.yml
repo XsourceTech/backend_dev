@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - GTMP-72
+      - GTMP-74
 
 jobs:
   build-and-push:

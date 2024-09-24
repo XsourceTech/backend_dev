@@ -1,5 +1,5 @@
 import requests
-from fastapi import FastAPI, HTTPException
+
 from database_sharing_service.app.config import settings
 from database_sharing_service.app.logging_config import get_logger
 
@@ -22,21 +22,14 @@ class AuthClient:
         url = f"{self.base_url}/generate-token"
         try:
             response = requests.post(url, json={"email": email, "password": password})
-
             response.raise_for_status()
-
-            token = response.json().get("access_token")
-            if not token:
-                raise HTTPException(status_code=400, detail="Token generation failed")
-            return token
+            return response.json().get("access_token")
         except requests.exceptions.HTTPError as http_err:
-            try:
-                error_detail = response.json().get("detail", "Unknown error")
-            except ValueError:
-                error_detail = "Unknown error"
-            raise HTTPException(status_code=response.status_code, detail=error_detail)
-        except Exception as err:
-            raise HTTPException(status_code=500, detail=f"An error occurred: {err}")
+            logger.error(f"HTTP error occurred: {http_err} - Status Code: {http_err.response.status_code}")
+            return None
+        except requests.exceptions.RequestException as err:
+            logger.error(f"Request error occurred: {err}")
+            return None
 
     def validate_token(self, token: str):
         """

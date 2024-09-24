@@ -6,7 +6,7 @@ requests==2.32.3          # HTTP library for making requests (popular and simple
 pytest-mock==3.14.0       # Mocking library for pytest
 python-multipart==0.0.9   # Run services using multithreading
 uvicorn==0.30.6           # ASGI server for running FastAPI applications
-
+azure-storage-blob==12.17.0 # Azure blob storage
 
 passlib==1.7.4            # Password hashing library with bcrypt support
 bcrypt==4.2.0             # Password hashing library with bcrypt support
@@ -18,3 +18,4 @@ alembic==1.11.1           # Database migrations tool compatible with SQLAlchemy
 python-dotenv==1.0.0      # Loading environment variables from a shared .env.production file
 psycopg2-binary==2.9.9    # PostgreSQL database adapter
 cryptography==43.0.1      # Cryption and decryption of user id
+azure-storage-blob==12.17.0 # Azure blob storage

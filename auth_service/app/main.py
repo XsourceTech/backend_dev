@@ -83,7 +83,7 @@ def validate_token(token: str):
         if email is None:
             logger.warning("Token validation failed: missing email in payload.")
             raise credentials_exception
-        token_data = schemas.TokenData(email=email, id=encrypt_user_id(payload.get("id")))
+        token_data = schemas.TokenData(email=email, id=str(payload.get("id")))
     except JWTError as e:
         logger.error(f"Token validation failed: {str(e)}")
         raise credentials_exception

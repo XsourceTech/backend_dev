@@ -1,11 +1,13 @@
 from datetime import timedelta, datetime
 
+from fastapi import HTTPException
 from jose import jwt
 from sqlalchemy.orm import Session
 
 from . import models
 from .config import settings
-from .models import User
+from .models import User, Article, FileMetadata
+from .schemas import UserCreate, ArticleCreate
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
 
@@ -22,8 +24,14 @@ def get_user_by_id(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def create_user(db: Session, user_create):
-    #uuid
+def get_article_by_user_id(db: Session, user_id: int):
+    return db.query(Article).filter(Article.id == user_id).all()
+
+def get_article_by_article_id(db: Session, article_id: int):
+    return db.query(Article).filter(Article.article_id == article_id).first()
+
+
+def create_user(db: Session, user_create: UserCreate):
     hashed_password = pwd_context.hash(user_create.password)
     db_user = User(email=user_create.email, user_name=user_create.user_name, hashed_password=hashed_password,
                    source=user_create.source, user_identity=user_create.user_identity)
@@ -31,6 +39,29 @@ def create_user(db: Session, user_create):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def create_article(db: Session, article_create: ArticleCreate):
+    db_article = Article(article_title=article_create.title, article_major=article_create.major,
+                         article_field=article_create.field, article_topic=article_create.topic,
+                         id=article_create.user_id)
+    db.add(db_article)
+    db.commit()
+    db.refresh(db_article)
+    return db_article
+
+
+def delete_article(db: Session, article_id: int):
+    db_article = db.query(Article).filter(Article.article_id == article_id).first()
+    if db_article is None:
+        return False
+    try:
+        db.delete(db_article)
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        return False
 
 
 def verify_password(plain_password, hashed_password):
@@ -61,11 +92,47 @@ def generate_active_token(email: str, expiration: int) -> str:
     return encoded_jwt
 
 
-def encrypt_user_id(user_id: int) -> str:
-    encrypted_identity = cipher_suite.encrypt(str(user_id).encode('utf-8'))
+def encrypt_id(id: int) -> str:
+    encrypted_identity = cipher_suite.encrypt(str(id).encode('utf-8'))
     return encrypted_identity.decode('utf-8')
 
 
-def decrypt_user_id(encrypted_id: str) -> str:
+def decrypt_id(encrypted_id: str) -> str:
     decrypted_identity = cipher_suite.decrypt(encrypted_id.encode('utf-8'))
     return decrypted_identity.decode('utf-8')
+
+
+def save_metadata_to_db(db: Session, article_id: str, filename: str, content_type: str, blob_url: str) -> FileMetadata:
+    """
+    Saves file metadata to the database.
+    """
+    try:
+        file_metadata = FileMetadata(
+            article_id=int(article_id),
+            filename=filename,
+            content_type=content_type,
+            blob_url=blob_url
+        )
+        db.add(file_metadata)
+        db.commit()
+        db.refresh(file_metadata)
+        return file_metadata
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Failed to save file metadata to the database: {e}")
+
+
+def delete_metadata_from_db(db: Session, article_id: str, filename: str) -> bool:
+    """
+    Deletes file metadata from the database based on user ID and filename.
+    """
+    try:
+        metadata = db.query(FileMetadata).filter_by(article_id=article_id, filename=filename).first()
+        if metadata:
+            db.delete(metadata)
+            db.commit()
+            return True
+        return False  # Metadata not found
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Failed to delete metadata from the database: {e}")
