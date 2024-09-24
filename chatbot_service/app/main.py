@@ -73,9 +73,10 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
     logger.info(f"Reply successfully.")
     bot_memory_reply = BotMemory.parse_obj({"chat_messages": reply.get('bot_memory')})
     new_level_str = get_current_level(bot_memory_reply, part)
+    print(old_level_str, new_level_str)
     end = get_current_level(bot_memory_reply, part) == 'end'
     if new_level_str != old_level_str :
-        bot_memory_reply.chat_messages[-1].content += f"可以和我聊聊你对于{translate[new_level_str]}的想法吗？"
+        bot_memory_reply.chat_messages[-1].content += f"接下来我想和你聊聊{translate[new_level_str]}。"
     bot_memory_with_flag = schemas.BotMemoryWithFlag(bot_memory=bot_memory_reply, is_end=end)
     return bot_memory_with_flag
 
