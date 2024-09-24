@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -10,7 +11,7 @@ from database_sharing_service.app.database import get_db
 from database_sharing_service.app.logging_config import get_logger
 from user_service.clients.auth_client import AuthClient
 from user_service.clients.email_client import EmailClient
-
+import time
 import uvicorn
 
 user_app = FastAPI(
@@ -28,6 +29,15 @@ user_app = FastAPI(
         },
     ],
 )
+"""
+user_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有来源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有HTTP方法
+    allow_headers=["*"],  # 允许所有Header
+)
+"""
 
 logger = get_logger("User_Service")
 
@@ -50,6 +60,10 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     Returns the newly created user object.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - signup, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     logger.info(f"Attempting to sign up user: {user.email}")
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
@@ -67,6 +81,12 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
     logger.info(f"Activation email sent to: {user.email}")
     new_user = create_user(db, user)
     logger.info(f"User created: {new_user.email}")
+
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - signup, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
     return {"status": "200", "message": "User created"}
 
 
@@ -81,6 +101,10 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
 
     Returns a JWT token if the credentials are valid.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - login, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     logger.info(f"User attempting to log in: {user.email}")
     try:
         token = auth_client.authenticate_user(user.email, user.password)
@@ -98,6 +122,12 @@ def login(user: schemas.TokenRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="An unexpected error occurred during authentication")
 
     logger.info(f"User logged in successfully: {user.email}")
+
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - login, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -111,6 +141,10 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
 
     Sends a password reset link to the provided email if the user exists.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - request_password_reset, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     logger.info(f"Attempting to reset password for user: {email}")
     user = get_user_by_email(db, email)
     if user is None:
@@ -128,13 +162,17 @@ def request_password_reset(email: str = Form(...), db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail="Invalid email")
     logger.info(f"Activation email sent to: {user.email}")
 
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - request_password_reset, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
     return {"status": "200", "message": "Email sent"}
 
 
 @user_app.get("/activate", tags=["Users"], summary="Activate User Account",
               description="Activate a user account using the token sent to the user's email.")
 def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
-    logger.info(f"User account activating for token: {token}")
     """
     Activate a user account using the token sent to the user's email.
 
@@ -142,6 +180,12 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
 
     Returns a redirect to a success page if the account is activated.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - activate, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    logger.info(f"User account activating for token: {token}")
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         if payload.get("type") != "active":
@@ -162,6 +206,12 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
         db.commit()
 
         logger.info(f"User account activated: {email}")
+
+        end_time = time.time()  # 结束时间
+        duration = end_time - start_time
+        logger.info(
+            f"Request end - activate, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
         return {"status": "200", "message": "Activation success"}  # Redirect to a success page
 
     except JWTError as e:
@@ -180,6 +230,10 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
 
     Updates the user's password if the token is valid.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - reset_password, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         if payload.get("type") != "reset":
@@ -196,6 +250,12 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         db.commit()
 
         logger.info(f"User password reset: {email}")
+
+        end_time = time.time()  # 结束时间
+        duration = end_time - start_time
+        logger.info(
+            f"Request end - reset_password, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
         return {"status": "200", "message": "Reset success"}  # Redirect to a success page
 
     except JWTError as e:
@@ -214,6 +274,10 @@ async def query_user_by_token(token: str = Path(..., description="The authentica
 
     Returns the user's profile information if the token is valid.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - query user, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     token_data = auth_client.validate_token(token)
     if not token_data:
         logger.warning("Token validation failed.")
@@ -226,6 +290,12 @@ async def query_user_by_token(token: str = Path(..., description="The authentica
     if user is None:
         logger.warning(f"User with ID {user_id} not found.")
         raise HTTPException(status_code=404, detail="User not found")
+
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - query user, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
     return user
 
 

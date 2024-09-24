@@ -1,6 +1,8 @@
+import time
 from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, Depends, Query, responses, Path, Form, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from article_service.clients.auth_client import AuthClient
 from database_sharing_service.app import schemas, __init__
 from database_sharing_service.app.config import settings
@@ -22,6 +24,15 @@ article_app = FastAPI(
         },
     ],
 )
+"""
+article_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有来源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有HTTP方法
+    allow_headers=["*"],  # 允许所有Header
+)
+"""
 
 # Initialize Azure Blob Storage clients
 blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
@@ -46,6 +57,11 @@ def get_article_api(token: str = Query(..., description="The authentication toke
 
     Returns a list of articles created by the user.
     """
+
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - get-article-by-user, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     token_data = auth_client.validate_token(token)
     if not token_data:
         logger.warning("Token validation failed.")
@@ -69,6 +85,11 @@ def get_article_api(token: str = Query(..., description="The authentication toke
         topic=article.article_topic
     ) for article in articles]
 
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - get-article-by-user, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
     return schemas.Articles(article_infos=article_infos)
 
 
@@ -86,11 +107,20 @@ def get_article_by_id_api(article_encid: str = Path(..., description="The ID of 
 
     Returns the details of the article.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - get-article, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     article_decid = decrypt_id(article_encid)
     article = get_article_by_article_id(db, article_decid)
 
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
+
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - get-article, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
 
     return schemas.ArticleInfo(
         id=encrypt_id(article.article_id),
@@ -115,10 +145,21 @@ def delete_article_api(article_encid: str = Path(..., description="The ID of the
 
     Returns a message confirming the deletion.
     """
+
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - delete-article, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     article_decid = decrypt_id(article_encid)
     delete = delete_article(db, article_decid)
     if not delete:
         raise HTTPException(status_code=404, detail="Article not found")
+
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - delete-article, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
     return {"status": "200", "message": "Article deleted"}
 
 
@@ -135,9 +176,20 @@ def create_article_api(article: schemas.ArticleCreate, db: Session = Depends(get
 
     Returns a message confirming the article creation.
     """
+
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - create-article, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     try:
         new_article = create_article(db, article)
         logger.info(f"Article created: {new_article.article_title}")
+
+        end_time = time.time()  # 结束时间
+        duration = end_time - start_time
+        logger.info(
+            f"Request end - create-article, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
         return {"status": "200", "message": "Article created"}
     except Exception as e:
         logger.error(f"Error creating article: {str(e)}")
@@ -150,6 +202,9 @@ async def upload_files(article_encid: str = Query(...), files: List[UploadFile] 
     """
     Upload multiple files to Azure Blob Storage and save their metadata to the PostgreSQL database.
     """
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - upload_files, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
     uploaded_files_metadata = []
     failed_files = []
@@ -178,8 +233,19 @@ async def upload_files(article_encid: str = Query(...), files: List[UploadFile] 
             continue  # Skip this file and continue with the next one
 
     if failed_files:
+
+        end_time = time.time()  # 结束时间
+        duration = end_time - start_time
+        logger.info(
+            f"Request end - upload_files, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
+
         return {"status": "207", "message": "Some files failed to upload", "uploaded_files": uploaded_files_metadata,
                 "failed_files": failed_files}
+
+    end_time = time.time()  # 结束时间
+    duration = end_time - start_time
+    logger.info(
+        f"Request end - upload_files, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
 
     return {"status": "200", "message": "All files uploaded successfully"}
 
@@ -189,6 +255,11 @@ async def delete_file(filedelete: schemas.FileDelete, db: Session = Depends(get_
     """
     Delete a file from Azure Blob Storage and remove its metadata from the PostgreSQL database.
     """
+
+    start_time = time.time()  # 开始时间
+    logger.info(
+        f"Request start - delete-file, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+
     filedelete.article_id = decrypt_id(filedelete.article_id)
     try:
         # Delete the file from Azure Blob Storage
@@ -205,6 +276,11 @@ async def delete_file(filedelete: schemas.FileDelete, db: Session = Depends(get_
 
         if not metadata_deleted:
             raise HTTPException(status_code=404, detail=f"Metadata for file '{filedelete.filename}' not found in the database.")
+
+        end_time = time.time()  # 结束时间
+        duration = end_time - start_time
+        logger.info(
+            f"Request end - delete-file, Time: {time.strftime('%Y-%m-%d %H:%M:%S')}, Duration: {duration:.2f} seconds")
 
         return {"message": f"File '{filedelete.filename}' and its metadata successfully deleted."}
 
