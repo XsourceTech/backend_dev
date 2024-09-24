@@ -21,9 +21,6 @@ chatbot_app = FastAPI(
             "description": "Operations related to chatbot responses generation and summarization.",
         },
     ],
-    docs_url='/chatbot/docs',
-    redoc_url='/chatbot/redoc',
-    openapi_url='/chatbot/openapi.json'
 )
 
 logger = get_logger("Chatbot_Service")
@@ -33,7 +30,7 @@ article_client = ArticleClient()
 
 
 @chatbot_app.post("/get-response",
-                  response_model=schemas.BotMemoryWithEndFlag,
+                  response_model=schemas.BotMemoryWithFlag,
                   tags=["Chatbot Responses"],
                   summary="Generate next bot message",
                   description="Generate the next bot message based on memory, token, and other parameters.")
@@ -59,26 +56,28 @@ def get_response(bot_memory: schemas.BotMemory, token: schemas.Token,
         logger.error(f"Token decoding failed: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    current_level_str = get_current_level(bot_memory, part)
-    if current_level_str is None:
+    old_level_str = get_current_level(bot_memory, part)
+    if old_level_str is None:
         logger.warning(f"User input empty.")
         raise HTTPException(status_code=400, detail="Input empty or role incorrect.")
 
-    if current_level_str == 'end':
+    if old_level_str == 'end':
         logger.warning(f"Chat ended.")
         raise HTTPException(status_code=410, detail="Chat ended.")
 
-    reply = chatbot_client.get_reply(bot_memory, schemas.Part(part), schemas.Level(current_level_str))
-
+    reply = chatbot_client.get_reply(bot_memory, schemas.Part(part), schemas.Level(old_level_str))
     if reply is None:
         logger.warning(f"Get reply failed.")
         raise HTTPException(status_code=503, detail="Failed to get reply from the chatbot.")
 
     logger.info(f"Reply successfully.")
     bot_memory_reply = BotMemory.parse_obj({"chat_messages": reply.get('bot_memory')})
+    new_level_str = get_current_level(bot_memory_reply, part)
     end = get_current_level(bot_memory_reply, part) == 'end'
-    bot_memory_with_end_flag = schemas.BotMemoryWithEndFlag(bot_memory=bot_memory_reply, is_end=end)
-    return bot_memory_with_end_flag
+    if new_level_str != old_level_str :
+        bot_memory_reply.chat_messages[-1].content += f"可以和我聊聊你对于{translate[new_level_str]}的想法吗？"
+    bot_memory_with_flag = schemas.BotMemoryWithFlag(bot_memory=bot_memory_reply, is_end=end)
+    return bot_memory_with_flag
 
 
 @chatbot_app.post("/summarize",

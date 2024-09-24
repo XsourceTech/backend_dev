@@ -61,7 +61,7 @@ class BotMemory(BaseModel):
     chat_messages: List[ChatMessage]
 
 
-class BotMemoryWithEndFlag(BaseModel):
+class BotMemoryWithFlag(BaseModel):
     bot_memory: BotMemory
     is_end: bool
 
@@ -121,3 +121,7 @@ class FileMetadataResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class FileDelete(BaseModel):
+    article_id: str
+    filename: str

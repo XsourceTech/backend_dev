@@ -3,7 +3,12 @@ import re
 
 levels_dict = {}
 levels_dict["article"] = ['major', 'field', 'topic', 'title', 'end']
-
+translate = {
+    'major': "专业",
+    'field': "研究领域",
+    'topic': "研究主题",
+    'title': "文章题目"
+}
 def get_current_level(bot_memory: schemas.BotMemory, part: str):
 
     if len(bot_memory.chat_messages) <= 0:

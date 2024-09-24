@@ -40,7 +40,7 @@ async def send_email_task(fm: FastMail, message: MessageSchema):
     except SMTPRecipientsRefused as exc:
         raise HTTPException(status_code=400, detail=f"Failed to send email: {str(exc)}")  # 抛出HTTPException
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="Unexpected error")
+        raise HTTPException(status_code=500, detail="Unexpected error:" + str(exc))
 
 
 @email_app.post("/send-activation-email", response_model=schemas.Message, tags=["Emails"],

@@ -19,6 +19,7 @@ class User(Base):
     articles = relationship('Article', back_populates='author')
 
 
+
 class Article(Base):
     __tablename__ = 'articles'
 
@@ -32,11 +33,18 @@ class Article(Base):
     id = Column(Integer, ForeignKey('users.id'))
 
     author = relationship('User', back_populates='articles')
-
+    files = relationship('FileMetadata', back_populates='article')  # 添加与文件元数据的关系
 
 class FileMetadata(Base):
     __tablename__ = "file_metadata"
+
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, index=True)
     content_type = Column(String)
     blob_url = Column(String)
+    reference = Column(String, nullable=True)  # 添加 'reference' 字段，与图表保持一致
+
+    # 外键，连接文章表
+    article_id = Column(Integer, ForeignKey('articles.article_id'))
+
+    article = relationship('Article', back_populates='files')
