@@ -156,13 +156,13 @@ def activate_user(token: str = Query(...), db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="User not found")
 
         if user.is_active:
-            return responses.RedirectResponse(url="/redirect/user-verified")  # Redirect if user is already verified
+            return {"status": "409", "message": "User already verified"}   # Redirect if user is already verified
 
         user.is_active = True
         db.commit()
 
         logger.info(f"User account activated: {email}")
-        return RedirectResponse(url="/redirect/activation-success")  # Redirect to a success page
+        return {"status": "200", "message": "Activation success"}  # Redirect to a success page
 
     except JWTError as e:
         logger.error(f"Token decoding failed: {str(e)}")
@@ -196,7 +196,7 @@ def reset_password(token: str = Form(...), new_password: str = Form(...), db: Se
         db.commit()
 
         logger.info(f"User password reset: {email}")
-        return RedirectResponse(url="/redirect/password-reset-success")  # Redirect to a success page
+        return {"status": "200", "message": "Reset success"}  # Redirect to a success page
 
     except JWTError as e:
         logger.error(f"Token decoding failed: {str(e)}")
